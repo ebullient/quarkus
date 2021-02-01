@@ -9,13 +9,15 @@ import io.quarkus.runtime.annotations.ConfigItem;
  * Build / static runtime config for the Microprofile Metrics Binder
  */
 @ConfigGroup
-public class MicroprofileMetricsConfig implements MicrometerConfig.CapabilityEnabled {
+public class MicroprofileMetricsFixedConfig implements MicrometerConfig.CapabilityEnabled {
     // @formatter:off
     /**
      * Eclipse MicroProfile Metrics support.
      *
      * Support for MicroProfile Metrics will be enabled if Micrometer
-     * support is enabled and the MicroProfile Metrics dependency is present:
+     * support is enabled and the MicroProfile Metrics dependency is present.
+     * This could be due to direct inclusion (shown below), or due to a transitive
+     * dependency:
      *
      * [source,xml]
      * ----
@@ -25,8 +27,8 @@ public class MicroprofileMetricsConfig implements MicrometerConfig.CapabilityEna
      * </dependency>
      * ----
      *
-     * The Micrometer extension currently provides a compatibility layer that supports the MP Metrics API,
-     * but metric names and recorded values will be different.
+     * The Micrometer extension currently provides a compatibility layer that supports the
+     * MP Metrics API, but metric names and recorded values will be different.
      * Note that the MP Metrics compatibility layer will move to a different extension in the future.
      *
      * @asciidoclet

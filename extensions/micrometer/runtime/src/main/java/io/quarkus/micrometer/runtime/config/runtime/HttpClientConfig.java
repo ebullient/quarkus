@@ -11,7 +11,7 @@ import io.quarkus.runtime.annotations.ConfigRoot;
 public class HttpClientConfig {
     /**
      * Comma-separated list of regular expressions used to specify uri
-     * labels in http metrics.
+     * labels in http client metrics.
      *
      * Outbount HTTP client instrumentation will attempt to transform parameterized
      * resource paths, `/item/123`, into a generic form, `/item/{id}`,

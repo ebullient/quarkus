@@ -10,13 +10,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import io.quarkus.micrometer.runtime.config.runtime.VertxConfig;
+import io.quarkus.micrometer.runtime.config.runtime.HttpServerConfig;
 
 public class VertxHttpServerMetricsTest {
 
     @Test
     public void testHttpServerMetricsIgnorePatterns() {
-        VertxConfig runtimeConfig = new VertxConfig();
+        HttpServerConfig runtimeConfig = new HttpServerConfig();
         runtimeConfig.ignorePatterns = Optional.of(new ArrayList<>(Arrays.asList("/item/.*")));
         VertxHttpServerMetrics metrics = new VertxHttpServerMetrics(new SimpleMeterRegistry(), runtimeConfig);
 
@@ -28,7 +28,7 @@ public class VertxHttpServerMetricsTest {
 
     @Test
     public void testHttpServerMetricsMatchPatterns() {
-        VertxConfig runtimeConfig = new VertxConfig();
+        HttpServerConfig runtimeConfig = new HttpServerConfig();
         runtimeConfig.matchPatterns = Optional.of(new ArrayList<>(Arrays.asList("/item/\\d+=/item/{id}")));
         VertxHttpServerMetrics metrics = new VertxHttpServerMetrics(new SimpleMeterRegistry(), runtimeConfig);
 

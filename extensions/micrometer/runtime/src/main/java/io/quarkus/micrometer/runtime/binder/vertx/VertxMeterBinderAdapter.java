@@ -7,7 +7,7 @@ import javax.inject.Singleton;
 import org.jboss.logging.Logger;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.quarkus.micrometer.runtime.config.runtime.VertxConfig;
+import io.quarkus.micrometer.runtime.config.runtime.HttpServerConfig;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.metrics.MetricsOptions;
@@ -22,12 +22,12 @@ public class VertxMeterBinderAdapter extends MetricsOptions implements VertxMetr
 
     private final static AtomicReference<MeterRegistry> meterRegistryRef = new AtomicReference<>();
 
-    private VertxConfig config;
+    private HttpServerConfig config;
 
     public VertxMeterBinderAdapter() {
     }
 
-    public void setVertxConfig(VertxConfig config) {
+    public void setVertxConfig(HttpServerConfig config) {
         this.config = config;
     }
 

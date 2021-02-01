@@ -7,13 +7,13 @@ import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 
-@ConfigRoot(name = "micrometer.binder.vertx", phase = ConfigPhase.RUN_TIME)
-public class VertxConfig {
+@ConfigRoot(name = "micrometer.binder.http-server", phase = ConfigPhase.RUN_TIME)
+public class HttpServerConfig {
     /**
      * Comma-separated list of regular expressions used to specify uri
-     * labels in http metrics.
+     * labels in http server metrics.
      *
-     * Vertx instrumentation will attempt to transform parameterized
+     * Instrumentation will attempt to transform parameterized
      * resource paths, `/item/123`, into a generic form, `/item/{id}`,
      * to reduce the cardinality of uri label values.
      *

@@ -101,6 +101,7 @@ public class MicrometerRecorder {
             new JvmMemoryMetrics().bindTo(Metrics.globalRegistry);
             new JvmThreadMetrics().bindTo(Metrics.globalRegistry);
             new JVMInfoBinder().bindTo(Metrics.globalRegistry);
+            // Not in Native mode
             if (!ImageInfo.inImageCode()) {
                 new JvmGcMetrics().bindTo(Metrics.globalRegistry);
             }

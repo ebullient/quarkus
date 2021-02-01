@@ -13,7 +13,7 @@ import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.binder.http.Outcome;
 import io.quarkus.micrometer.runtime.binder.HttpMetricsCommon;
 import io.quarkus.micrometer.runtime.binder.HttpRequestMetric;
-import io.quarkus.micrometer.runtime.config.runtime.VertxConfig;
+import io.quarkus.micrometer.runtime.config.runtime.HttpServerConfig;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -42,7 +42,7 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
     final String nameHttpServerPush;
     final String nameHttpServerRequests;
 
-    VertxHttpServerMetrics(MeterRegistry registry, VertxConfig config) {
+    VertxHttpServerMetrics(MeterRegistry registry, HttpServerConfig config) {
         super(registry, "http.server");
         nameWebsocketConnections = "http.server.websocket.connections";
         nameHttpServerPush = "http.server.push";

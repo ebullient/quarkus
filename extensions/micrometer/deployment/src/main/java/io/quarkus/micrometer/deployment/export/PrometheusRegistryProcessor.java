@@ -2,17 +2,16 @@ package io.quarkus.micrometer.deployment.export;
 
 import java.util.function.BooleanSupplier;
 
-import org.jboss.logging.Logger;
-
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.micrometer.deployment.MicrometerProcessor;
 import io.quarkus.micrometer.deployment.MicrometerRegistryProviderBuildItem;
 import io.quarkus.micrometer.runtime.MicrometerRecorder;
 import io.quarkus.micrometer.runtime.config.MicrometerConfig;
-import io.quarkus.micrometer.runtime.config.PrometheusConfig;
+import io.quarkus.micrometer.runtime.config.PrometheusFixedConfig;
 import io.quarkus.micrometer.runtime.export.PrometheusMeterRegistryProvider;
 import io.quarkus.micrometer.runtime.export.PrometheusRecorder;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
@@ -23,8 +22,6 @@ import io.quarkus.vertx.http.deployment.RouteBuildItem;
  * references.
  */
 public class PrometheusRegistryProcessor {
-    private static final Logger log = Logger.getLogger(PrometheusRegistryProcessor.class);
-
     static final String REGISTRY_CLASS_NAME = "io.micrometer.prometheus.PrometheusMeterRegistry";
     static final Class<?> REGISTRY_CLASS = MicrometerRecorder.getClassForName(REGISTRY_CLASS_NAME);
 
@@ -55,8 +52,8 @@ public class PrometheusRegistryProcessor {
             MicrometerConfig mConfig,
             PrometheusRecorder recorder) {
 
-        PrometheusConfig pConfig = mConfig.export.prometheus;
-        log.debug("PROMETHEUS CONFIG: " + pConfig);
+        PrometheusFixedConfig pConfig = mConfig.export.prometheus;
+        MicrometerProcessor.LOG.debug("PROMETHEUS CONFIG: " + pConfig);
 
         // Exact match for resources matched to the root path
         routes.produce(new RouteBuildItem.Builder()

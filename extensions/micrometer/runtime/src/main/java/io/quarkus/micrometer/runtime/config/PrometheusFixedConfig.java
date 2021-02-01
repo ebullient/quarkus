@@ -6,7 +6,7 @@ import io.quarkus.runtime.annotations.ConfigGroup;
 import io.quarkus.runtime.annotations.ConfigItem;
 
 @ConfigGroup
-public class PrometheusConfig implements MicrometerConfig.CapabilityEnabled {
+public class PrometheusFixedConfig implements MicrometerConfig.CapabilityEnabled {
     /**
      * Support for export to Prometheus.
      * <p>

@@ -13,6 +13,7 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
+import org.jboss.logging.Logger;
 
 import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
@@ -63,6 +64,8 @@ public class MicrometerProcessor {
     private static final DotName TIMED_ANNOTATION = DotName.createSimple(Timed.class.getName());
     private static final DotName TIMED_BINDING = DotName.createSimple(MicrometerTimed.class.getName());
     private static final DotName TIMED_INTERCEPTOR = DotName.createSimple(MicrometerTimedInterceptor.class.getName());
+
+    public static final Logger LOG = Logger.getLogger(MicrometerProcessor.class);
 
     static class MicrometerEnabled implements BooleanSupplier {
         MicrometerConfig mConfig;

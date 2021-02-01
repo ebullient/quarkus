@@ -175,7 +175,7 @@ class PrometheusMetricsRegistryTest {
                 // this was defined by a tag to a non-matching registry, and should not be found
                 .body(not(containsString("class-should-not-match")))
 
-                // should not find this ignored uri
+                // should not find these ignored uris
                 .body(not(containsString("uri=\"/fruit/create\"")));
     }
 }

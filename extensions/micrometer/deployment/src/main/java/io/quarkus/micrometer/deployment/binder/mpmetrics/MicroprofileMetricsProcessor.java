@@ -6,7 +6,6 @@ import java.util.function.Predicate;
 import javax.enterprise.context.Dependent;
 
 import org.jboss.jandex.*;
-import org.jboss.logging.Logger;
 
 import io.quarkus.arc.deployment.*;
 import io.quarkus.arc.deployment.BeanRegistrationPhaseBuildItem.BeanConfiguratorBuildItem;
@@ -18,6 +17,7 @@ import io.quarkus.deployment.annotations.*;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.gizmo.ClassOutput;
+import io.quarkus.micrometer.deployment.MicrometerProcessor;
 import io.quarkus.micrometer.deployment.RootMeterRegistryBuildItem;
 import io.quarkus.micrometer.runtime.MicrometerRecorder;
 import io.quarkus.micrometer.runtime.binder.mpmetrics.MpMetricsRecorder;
@@ -29,7 +29,6 @@ import io.quarkus.micrometer.runtime.config.MicrometerConfig;
  * Avoid importing classes that import MP Metrics API classes.
  */
 public class MicroprofileMetricsProcessor {
-    private static final Logger log = Logger.getLogger(MicroprofileMetricsProcessor.class);
     static final Class<?> METRIC_ANNOTATION_CLASS = MicrometerRecorder
             .getClassForName(MetricDotNames.METRIC_ANNOTATION.toString());
 
@@ -95,7 +94,7 @@ public class MicroprofileMetricsProcessor {
         }
 
         if (mpMetricsPresent) {
-            log.warn("This application uses the MP Metrics API. " +
+            MicrometerProcessor.LOG.warn("This application uses the MP Metrics API. " +
                     "The micrometer extension currently provides a compatibility layer that supports the MP Metrics API, " +
                     "but metric names and recorded values will be different. " +
                     "Note that the MP Metrics compatibility layer will move to a different extension in the future.");
@@ -130,7 +129,7 @@ public class MicroprofileMetricsProcessor {
                     while (clazz != null && clazz.superName() != null) {
                         if (!MetricDotNames.knownClass(clazz)
                                 && MetricDotNames.containsMetricAnnotation(clazz.annotations())) {
-                            log.debugf(
+                            MicrometerProcessor.LOG.debugf(
                                     "Found metrics business methods on a class %s with no scope defined - adding @Dependent",
                                     ctx.getTarget());
                             ctx.transform().add(Dependent.class).done();

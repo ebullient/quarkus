@@ -82,11 +82,20 @@ class MPMetricsTest {
 
     @Test
     @Order(6)
+    void call_ignored_method() {
+        given()
+                .when().get("/message")
+                .then()
+                .statusCode(200)
+                .body(containsString("io.micrometer.core.instrument.composite.CompositeMeterRegistry"));
+    }
+
+    @Test
+    @Order(7)
     void validateMetricsOutput_2() {
         given()
                 .when().get("/q/metrics")
                 .then()
-                .log().body()
                 .statusCode(200)
 
                 // Prometheus body has ALL THE THINGS in no particular order
@@ -95,17 +104,17 @@ class MPMetricsTest {
                 .body(containsString(
                         "highestPrimeNumberSoFar 887.0"))
                 .body(containsString(
-                        "io_quarkus_it_micrometer_mpmetrics_InjectedInstance_notPrime_total{scope=\"application\",}"));
+                        "io_quarkus_it_micrometer_mpmetrics_InjectedInstance_notPrime_total{scope=\"application\",}"))
+                .body(not(containsString("/message")));
     }
 
     @Test
-    @Order(7)
+    @Order(10)
     void validateJsonOutput() {
         given()
                 .header("Accept", "application/json")
                 .when().get("/q/metrics")
                 .then()
-                .log().body()
                 .statusCode(200)
                 .body("'io.quarkus.it.micrometer.mpmetrics.CountedInstance.countPrimes;scope=application'",
                         Matchers.equalTo(2.0f))

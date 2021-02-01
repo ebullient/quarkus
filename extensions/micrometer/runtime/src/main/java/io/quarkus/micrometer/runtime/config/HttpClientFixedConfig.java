@@ -9,7 +9,7 @@ import io.quarkus.runtime.annotations.ConfigItem;
  * Build / static runtime config for outbound HTTP requests
  */
 @ConfigGroup
-public class HttpClientConfig implements MicrometerConfig.CapabilityEnabled {
+public class HttpClientFixedConfig implements MicrometerConfig.CapabilityEnabled {
     /**
      * Outbound HTTP request metrics support.
      * <p>
