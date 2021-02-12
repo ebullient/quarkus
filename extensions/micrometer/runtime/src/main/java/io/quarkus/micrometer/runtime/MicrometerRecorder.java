@@ -85,6 +85,13 @@ public class MicrometerRecorder {
         Set<Bean<?>> beans = new HashSet<>(beanManager.getBeans(MeterRegistry.class, Any.Literal.INSTANCE));
         beans.removeIf(bean -> bean.getBeanClass().equals(CompositeRegistryCreator.class));
 
+        // Apply global filters to the global registry
+        if (!globalFilters.isUnsatisfied()) {
+            for (MeterFilter generalFilter : globalFilters) {
+                Metrics.globalRegistry.config().meterFilter(generalFilter);
+            }
+        }
+
         for (Bean<?> i : beans) {
             MeterRegistry registry = (MeterRegistry) beanManager
                     .getReference(i, MeterRegistry.class, beanManager.createCreationalContext(i));

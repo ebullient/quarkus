@@ -65,4 +65,14 @@ public class ServletTestCase {
                 .when().get("webjars/bootstrap/3.1.0/css/bootstrap.min.css").then()
                 .statusCode(200);
     }
+
+    @Test
+    public void testServletPattern() {
+        RestAssured.when().get("/testservlet").then()
+                .body(is("A message"));
+        RestAssured.when().get("/testservletpattern/123456").then()
+                .body(is("hello world"));
+        RestAssured.when().get("/q/metrics").then()
+                .body(containsString("uri=\"/testservletpattern/123456\""));
+    }
 }

@@ -14,6 +14,7 @@ public class ResteasyInjectorFactoryRecorder {
 
     public RuntimeValue<InjectorFactory> setup(BeanContainer container, List<Function<Object, Object>> propertyUnwrappers) {
         QuarkusInjectorFactory.CONTAINER = container;
+        QuarkusInjectorFactory.FULL_PATH_INDEX = container.instance(MethodFullPathIndex.class);
         QuarkusInjectorFactory.PROXY_UNWRAPPER = new Function<Object, Object>() {
             @Override
             public Object apply(Object o) {

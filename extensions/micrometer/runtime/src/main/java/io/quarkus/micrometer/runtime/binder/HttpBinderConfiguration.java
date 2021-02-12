@@ -85,7 +85,7 @@ public class HttpBinderConfiguration {
             List<String> input = configInput.get();
             List<Pattern> ignorePatterns = new ArrayList<>(input.size());
             for (String s : input) {
-                ignorePatterns.add(Pattern.compile(s));
+                ignorePatterns.add(Pattern.compile(s.trim()));
             }
             return ignorePatterns;
         }
@@ -99,8 +99,8 @@ public class HttpBinderConfiguration {
             for (String s : input) {
                 int pos = s.indexOf("=");
                 if (pos > 0 && s.length() > 2) {
-                    String pattern = s.substring(0, pos);
-                    String replacement = s.substring(pos + 1);
+                    String pattern = s.substring(0, pos).trim();
+                    String replacement = s.substring(pos + 1).trim();
                     try {
                         matchPatterns.put(Pattern.compile(pattern), replacement);
                     } catch (PatternSyntaxException pse) {

@@ -4,6 +4,7 @@ import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
 
 import io.quarkus.vertx.web.Body;
+import io.quarkus.vertx.web.Param;
 import io.quarkus.vertx.web.Route;
 import io.quarkus.vertx.web.RouteBase;
 import io.smallrye.mutiny.Uni;
@@ -25,6 +26,16 @@ public class SimpleEndpoint {
         Pet pet = new Pet();
         pet.setName("Jack");
         return Uni.createFrom().item(pet);
+    }
+
+    @Route(path = "item/:id", methods = GET)
+    public String item(@Param("id") Integer id) {
+        return "message with id " + id;
+    }
+
+    @Route(path = "item/:id/:sub", methods = GET)
+    public String item(@Param("id") Integer id, @Param("sub") Integer sub) {
+        return "message with id " + id + " and sub " + sub;
     }
 
     @Route(path = "pong", methods = GET)

@@ -2,12 +2,14 @@ package io.quarkus.it.main;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 import java.util.List;
 import java.util.Map;
 
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -53,6 +55,13 @@ public class RestClientTestCase {
         RestAssured.when().get("/client/encoding")
                 .then().body(is(
                         "\uD83D\uDE00\uD83D\uDE00\uD83D\uDE00\uD83D\uDE00\uD83D\uDE00\uD83D\uDE00\uD83D\uDE00\uD83D\uDE00"));
+
+        RestAssured.when().get("/q/metrics").then()
+                .log().body()
+                .body(not(Matchers.containsString(
+                        "\uD83D\uDE00\uD83D\uDE00\uD83D\uDE00\uD83D\uDE00\uD83D\uDE00\uD83D\uDE00\uD83D\uDE00\uD83D\uDE00")))
+                .body(Matchers.containsString(
+                        "http_client_requests_seconds_count{clientName=\"localhost\",method=\"GET\",outcome=\"SUCCESS\",status=\"200\",uri=\"/test/echo/{echo}\",} 1.0"));
     }
 
     @Test

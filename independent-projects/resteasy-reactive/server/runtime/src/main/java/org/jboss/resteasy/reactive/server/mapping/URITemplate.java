@@ -173,6 +173,10 @@ public class URITemplate implements Dumpable, Comparable<URITemplate> {
         this.prefixMatch = prefixMatch;
     }
 
+    String getTemplateString() {
+        return this.template;
+    }
+
     @Override
     public int compareTo(URITemplate uriTemplate) {
         int val = stem.compareTo(uriTemplate.stem);

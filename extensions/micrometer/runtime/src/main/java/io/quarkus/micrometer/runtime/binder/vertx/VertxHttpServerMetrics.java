@@ -12,6 +12,7 @@ import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.binder.http.Outcome;
 import io.quarkus.micrometer.runtime.binder.HttpBinderConfiguration;
+import io.quarkus.micrometer.runtime.binder.HttpMeterFilterProvider;
 import io.quarkus.micrometer.runtime.binder.HttpMetricsCommon;
 import io.quarkus.micrometer.runtime.binder.HttpRequestMetric;
 import io.vertx.core.Context;
@@ -44,9 +45,9 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
 
     VertxHttpServerMetrics(MeterRegistry registry, HttpBinderConfiguration config) {
         super(registry, "http.server");
-        nameWebsocketConnections = "http.server.websocket.connections";
-        nameHttpServerPush = "http.server.push";
-        nameHttpServerRequests = "http.server.requests";
+        nameWebsocketConnections = HttpMeterFilterProvider.HTTP_SERVER_WEBSOCKETS_NAME;
+        nameHttpServerPush = HttpMeterFilterProvider.HTTP_SERVER_PUSH_NAME;
+        nameHttpServerRequests = HttpMeterFilterProvider.HTTP_SERVER_REQUESTS_NAME;
 
         ignorePatterns = config.getServerIgnorePatterns();
         matchPatterns = config.getServerMatchPatterns();

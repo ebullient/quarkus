@@ -21,7 +21,7 @@ import io.quarkus.arc.Arc;
  * This is initialized via ServiceFactory (static/non-CDI initialization)
  */
 public class RestClientMetrics implements RestClientListener {
-    private static final String HTTP_CLIENT_METRIC_NAME = "http.client.requests";
+
     private final static String REQUEST_METRIC_PROPERTY = "restClientMetrics";
 
     final MeterRegistry registry = Metrics.globalRegistry;
@@ -82,7 +82,7 @@ public class RestClientMetrics implements RestClientListener {
                 Timer.Sample sample = requestMetric.sample;
                 String requestPath = requestMetric.getHttpRequestPath();
                 int statusCode = responseContext.getStatus();
-                Timer.Builder builder = Timer.builder(HTTP_CLIENT_METRIC_NAME)
+                Timer.Builder builder = Timer.builder(HttpMeterFilterProvider.HTTP_CLIENT_REQUESTS_NAME)
                         .tags(Tags.of(
                                 HttpMetricsCommon.method(requestContext.getMethod()),
                                 HttpMetricsCommon.uri(requestPath, statusCode),

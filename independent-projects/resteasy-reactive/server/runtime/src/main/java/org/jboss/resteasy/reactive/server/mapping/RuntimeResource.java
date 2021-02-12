@@ -35,6 +35,9 @@ public class RuntimeResource {
     private final MediaType sseElementType;
     private final Map<Class<? extends Throwable>, ResourceExceptionMapper<? extends Throwable>> classExceptionMappers;
 
+    // lazy initialization
+    private String templatePath;
+
     public RuntimeResource(String httpMethod, URITemplate path, URITemplate classPath, ServerMediaType produces,
             List<MediaType> consumes,
             EndpointInvoker invoker,
@@ -117,7 +120,7 @@ public class RuntimeResource {
     }
 
     public SimpleResourceInfo getSimplifiedResourceInfo() {
-        return new ResteasyReactiveSimplifiedResourceInfo(javaMethodName, resourceClass, parameterTypes);
+        return new ResteasyReactiveSimplifiedResourceInfo(javaMethodName, resourceClass, parameterTypes, getTemplateUriPath());
     }
 
     public MediaType getSseElementType() {
@@ -143,6 +146,25 @@ public class RuntimeResource {
 
     public Map<Class<? extends Throwable>, ResourceExceptionMapper<? extends Throwable>> getClassExceptionMappers() {
         return classExceptionMappers;
+    }
+
+    private String getTemplateUriPath() {
+        // lazy initialization. Duplication doesn't hurt
+        String template = templatePath;
+        if (template == null) {
+            StringBuilder sb = new StringBuilder();
+            if (classPath != null) {
+                sb.append(classPath.getTemplateString());
+            }
+            if (path != null) {
+                String pathTemplate = path.getTemplateString();
+                if (classPath == null || !"/".equals(pathTemplate)) {
+                    sb.append(pathTemplate);
+                }
+            }
+            template = templatePath = sb.toString();
+        }
+        return template;
     }
 
     @Override

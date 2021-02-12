@@ -44,7 +44,7 @@ class MPMetricsTest {
     }
 
     @Test
-    @Order(4)
+    @Order(10)
     void validateMetricsOutput_1() {
         given()
                 .when().get("/q/metrics")
@@ -72,7 +72,7 @@ class MPMetricsTest {
     }
 
     @Test
-    @Order(5)
+    @Order(11)
     void callPrimeGen_4() {
         given()
                 .when().get("/prime/900")
@@ -81,16 +81,74 @@ class MPMetricsTest {
     }
 
     @Test
-    @Order(8)
-    void callMessage() {
+    @Order(12)
+    void testRegistryInjection() {
         given()
                 .when().get("/message")
+                .then()
+                .statusCode(200)
+                .body(containsString("io.micrometer.core.instrument.composite.CompositeMeterRegistry"));
+    }
+
+    @Test
+    @Order(13)
+    void testUnknownUrl() {
+        given()
+                .when().get("/messsage/notfound")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    @Order(14)
+    void testServerError() {
+        given()
+                .when().get("/message/fail")
+                .then()
+                .statusCode(500);
+    }
+
+    @Test
+    @Order(15)
+    void testPathParameter() {
+        given()
+                .when().get("/message/item/123")
+                .then()
+                .statusCode(200);
+
+        given()
+                .when().get("/message/match/123/1")
+                .then()
+                .statusCode(200);
+
+        given()
+                .when().get("/message/match/1/123")
+                .then()
+                .statusCode(200);
+
+        given()
+                .when().get("/message/match/baloney")
+                .then()
+                .statusCode(200);
+
+        given()
+                .when().get("/message/detected/123/1")
+                .then()
+                .statusCode(200);
+
+        given()
+                .when().get("/message/detected/1/123")
+                .then()
+                .statusCode(200);
+
+        given()
+                .when().get("/message/detected/baloney")
                 .then()
                 .statusCode(200);
     }
 
     @Test
-    @Order(9)
+    @Order(19)
     void validateMetricsOutput_2() {
         given()
                 .when().get("/q/metrics")
@@ -98,17 +156,35 @@ class MPMetricsTest {
                 .statusCode(200)
 
                 // Prometheus body has ALL THE THINGS in no particular order
+                .body(containsString("status=\"404\""))
+                .body(containsString("uri=\"NOT_FOUND\""))
+                .body(containsString("outcome=\"CLIENT_ERROR\""))
+
+                .body(containsString("status=\"500\""))
+                .body(containsString("uri=\"/message/fail\""))
+                .body(containsString("outcome=\"SERVER_ERROR\""))
+
+                .body(containsString("status=\"200\""))
+                .body(containsString("uri=\"/message/item/{id}\""))
+                .body(containsString("outcome=\"SUCCESS\""))
+                .body(containsString("uri=\"/message/match/{id}/{sub}\""))
+                .body(containsString("uri=\"/message/match/{other}\""))
+                .body(containsString("uri=\"/message/detected/{id}/{sub}\""))
+                .body(containsString("uri=\"/message/detected/{text}\""))
+
                 .body(containsString(
                         "io_quarkus_it_micrometer_mpmetrics_CountedInstance_countPrimes_total{scope=\"application\",} 2.0"))
                 .body(containsString(
                         "highestPrimeNumberSoFar 887.0"))
                 .body(containsString(
                         "io_quarkus_it_micrometer_mpmetrics_InjectedInstance_notPrime_total{scope=\"application\",}"))
-                .body(not(containsString("/message")));
+
+                // /message is ignored in server config
+                .body(not(containsString("uri=\"/message\"")));
     }
 
     @Test
-    @Order(10)
+    @Order(20)
     void validateJsonOutput() {
         given()
                 .header("Accept", "application/json")

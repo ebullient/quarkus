@@ -54,6 +54,7 @@ import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.ProxyUnwrapperBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.util.ServiceUtil;
+import io.quarkus.resteasy.common.runtime.MethodFullPathIndex;
 import io.quarkus.resteasy.common.runtime.ResteasyInjectorFactoryRecorder;
 import io.quarkus.resteasy.common.runtime.providers.ServerFormUrlEncodedProvider;
 import io.quarkus.resteasy.common.spi.ResteasyConfigBuildItem;
@@ -276,6 +277,8 @@ public class ResteasyCommonProcessor {
             BuildProducer<ResteasyJaxrsProviderBuildItem> jaxrsProvider,
             BuildProducer<AdditionalBeanBuildItem> additionalBean,
             BuildProducer<UnremovableBeanBuildItem> unremovable) {
+
+        additionalBean.produce(AdditionalBeanBuildItem.unremovableOf(MethodFullPathIndex.class));
 
         if (capabilities.isPresent(Capability.REST_JACKSON)) {
             registerJsonContextResolver(OBJECT_MAPPER, QUARKUS_OBJECT_MAPPER_CONTEXT_RESOLVER, combinedIndexBuildItem,

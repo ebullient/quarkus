@@ -21,4 +21,9 @@ public interface SimpleResourceInfo {
      * Get the parameter types of the resource method that is the target of a request
      */
     Class<?>[] parameterTypes();
+
+    /**
+     * Get the template URI path that matched this request
+     */
+    String getTemplateUriPath();
 }

@@ -55,11 +55,7 @@ class PrometheusMetricsRegistryTest {
                 .when().get("/message/item/123")
                 .then()
                 .statusCode(200);
-    }
 
-    @Test
-    @Order(5)
-    void testMultipleParameters() {
         given()
                 .when().get("/message/match/123/1")
                 .then()
@@ -72,6 +68,21 @@ class PrometheusMetricsRegistryTest {
 
         given()
                 .when().get("/message/match/baloney")
+                .then()
+                .statusCode(200);
+
+        given()
+                .when().get("/message/detected/123/1")
+                .then()
+                .statusCode(200);
+
+        given()
+                .when().get("/message/detected/1/123")
+                .then()
+                .statusCode(200);
+
+        given()
+                .when().get("/message/detected/baloney")
                 .then()
                 .statusCode(200);
     }
@@ -138,6 +149,8 @@ class PrometheusMetricsRegistryTest {
                 .body(containsString("outcome=\"SUCCESS\""))
                 .body(containsString("uri=\"/message/match/{id}/{sub}\""))
                 .body(containsString("uri=\"/message/match/{other}\""))
+                .body(containsString("uri=\"/message/detected/{id}/{sub}\""))
+                .body(containsString("uri=\"/message/detected/{text}\""))
 
                 // Verify Hibernate Metrics
                 .body(containsString(
