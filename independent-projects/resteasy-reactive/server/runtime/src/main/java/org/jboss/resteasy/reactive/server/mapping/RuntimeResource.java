@@ -154,11 +154,18 @@ public class RuntimeResource {
         if (template == null) {
             StringBuilder sb = new StringBuilder();
             if (classPath != null) {
-                sb.append(classPath.getTemplateString());
+                String classTemplate = classPath.getTemplateString();
+                if (classTemplate.charAt(0) != '/') {
+                    sb.append('/');
+                }
+                sb.append(classTemplate);
             }
             if (path != null) {
                 String pathTemplate = path.getTemplateString();
                 if (classPath == null || !"/".equals(pathTemplate)) {
+                    if (pathTemplate.charAt(0) != '/') {
+                        sb.append('/');
+                    }
                     sb.append(pathTemplate);
                 }
             }

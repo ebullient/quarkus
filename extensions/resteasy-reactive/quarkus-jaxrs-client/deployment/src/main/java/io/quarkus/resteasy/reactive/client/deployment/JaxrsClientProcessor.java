@@ -519,6 +519,11 @@ public class JaxrsClientProcessor {
                                     index, generatedClassBuildItemBuildProducer, methodIndex);
                 }
 
+                methodCreator.invokeInterfaceMethod(
+                        MethodDescriptor.ofMethod(Invocation.Builder.class, "property", Invocation.Builder.class, String.class,
+                                Object.class),
+                        builder, methodCreator.load("org.resteasy.reactive.client.path"), methodCreator.load(method.getPath()));
+
                 Type returnType = jandexMethod.returnType();
                 boolean completionStage = false;
                 String simpleReturnType = method.getSimpleReturnType();

@@ -215,6 +215,14 @@ class PrometheusMetricsRegistryTest {
                 .body(containsString(
                         "prime_number_test_seconds_bucket{env=\"test\",registry=\"prometheus\",le=\"0.001\",}"))
 
+                // Client request invocations
+                .body(containsString(
+                        "http_client_requests_seconds_count{clientName=\"localhost\",method=\"GET\",outcome=\"SUCCESS\",status=\"200\",uri=\"/pong/{message}\",} 3.0"))
+                .body(containsString(
+                        "http_server_requests_seconds_count{method=\"GET\",outcome=\"SUCCESS\",status=\"200\",uri=\"/ping/{message}\",} 3.0"))
+                .body(containsString(
+                        "http_server_requests_seconds_count{method=\"GET\",outcome=\"SUCCESS\",status=\"200\",uri=\"/pong/{message}\",} 3.0"))
+
                 // this was defined by a tag to a non-matching registry, and should not be found
                 .body(not(containsString("class-should-not-match")))
 
