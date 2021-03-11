@@ -1,66 +1,63 @@
 package io.quarkus.micrometer.runtime.binder.vertx;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import io.quarkus.micrometer.runtime.binder.HttpBinderConfiguration;
-import io.quarkus.micrometer.runtime.config.runtime.HttpClientConfig;
-import io.quarkus.micrometer.runtime.config.runtime.HttpServerConfig;
-import io.quarkus.micrometer.runtime.config.runtime.VertxConfig;
+import io.quarkus.micrometer.runtime.binder.HttpRequestMetricInfo;
+import io.vertx.ext.web.Route;
+import io.vertx.ext.web.RoutingContext;
 
 public class VertxHttpServerMetricsTest {
+    final List<Pattern> NO_IGNORE_PATTERNS = Collections.emptyList();
+    final List<Pattern> ignorePatterns = Arrays.asList(Pattern.compile("/ignore.*"));
+
+    final Map<Pattern, String> NO_MATCH_PATTERNS = Collections.emptyMap();
 
     @Test
-    public void testHttpServerMetricsIgnorePatterns() {
-        HttpServerConfig serverConfig = new HttpServerConfig();
-        serverConfig.ignorePatterns = Optional.of(new ArrayList<>(Arrays.asList(" /item/.* ", " /oranges/.* ")));
+    public void testReturnPathFromHttpRequestPath() {
+        VertxServerRequestMetricInfo requestMetric = new VertxServerRequestMetricInfo(NO_MATCH_PATTERNS, NO_IGNORE_PATTERNS,
+                "/");
+        requestMetric.routingContext = Mockito.mock(RoutingContext.class);
 
-        HttpBinderConfiguration binderConfig = new HttpBinderConfiguration(
-                true, false,
-                serverConfig, new HttpClientConfig(), new VertxConfig());
+        Mockito.when(requestMetric.routingContext.get(HttpRequestMetricInfo.HTTP_REQUEST_PATH))
+                .thenReturn("/item/{id}");
 
-        VertxHttpServerMetrics metrics = new VertxHttpServerMetrics(new SimpleMeterRegistry(), binderConfig);
-        Assertions.assertEquals(2, metrics.ignorePatterns.size());
-
-        Pattern p = metrics.ignorePatterns.get(0);
-        Assertions.assertEquals("/item/.*", p.pattern());
-        Assertions.assertTrue(p.matcher("/item/123").matches());
-
-        p = metrics.ignorePatterns.get(1);
-        Assertions.assertEquals("/oranges/.*", p.pattern());
-        Assertions.assertTrue(p.matcher("/oranges/123").matches());
+        Assertions.assertEquals("/item/{id}", requestMetric.getHttpRequestPath());
     }
 
     @Test
-    public void testHttpServerMetricsMatchPatterns() {
-        HttpServerConfig serverConfig = new HttpServerConfig();
-        serverConfig.matchPatterns = Optional
-                .of(new ArrayList<>(Arrays.asList(" /item/\\d+=/item/{id} ", "  /msg/\\d+=/msg/{other} ")));
+    public void testReturnPathFromRoutingContext() {
+        VertxServerRequestMetricInfo requestMetric = new VertxServerRequestMetricInfo(NO_MATCH_PATTERNS, NO_IGNORE_PATTERNS,
+                "/");
+        requestMetric.routingContext = Mockito.mock(RoutingContext.class);
+        Route currentRoute = Mockito.mock(Route.class);
 
-        HttpBinderConfiguration binderConfig = new HttpBinderConfiguration(
-                true, false,
-                serverConfig, new HttpClientConfig(), new VertxConfig());
+        Mockito.when(requestMetric.routingContext.normalisedPath()).thenReturn("/item");
+        Mockito.when(requestMetric.routingContext.currentRoute()).thenReturn(currentRoute);
+        Mockito.when(currentRoute.getPath()).thenReturn("/item");
 
-        VertxHttpServerMetrics metrics = new VertxHttpServerMetrics(new SimpleMeterRegistry(), binderConfig);
+        Assertions.assertEquals("/item", requestMetric.getHttpRequestPath());
+    }
 
-        Assertions.assertFalse(metrics.matchPatterns.isEmpty());
-        Iterator<Map.Entry<Pattern, String>> i = metrics.matchPatterns.entrySet().iterator();
-        Map.Entry<Pattern, String> entry = i.next();
-        Assertions.assertEquals("/item/\\d+", entry.getKey().pattern());
-        Assertions.assertEquals("/item/{id}", entry.getValue());
-        Assertions.assertTrue(entry.getKey().matcher("/item/123").matches());
+    @Test
+    public void testReturnGenericPathFromRoutingContext() {
+        VertxServerRequestMetricInfo requestMetric = new VertxServerRequestMetricInfo(NO_MATCH_PATTERNS, NO_IGNORE_PATTERNS,
+                "/");
+        requestMetric.routingContext = Mockito.mock(RoutingContext.class);
+        Route currentRoute = Mockito.mock(Route.class);
 
-        entry = i.next();
-        Assertions.assertEquals("/msg/\\d+", entry.getKey().pattern());
-        Assertions.assertEquals("/msg/{other}", entry.getValue());
-        Assertions.assertTrue(entry.getKey().matcher("/msg/789").matches());
+        Mockito.when(requestMetric.routingContext.currentRoute()).thenReturn(currentRoute);
+        Mockito.when(currentRoute.getPath()).thenReturn("/item/:id");
+
+        Assertions.assertEquals("/item/{id}", requestMetric.getHttpRequestPath());
+        // Make sure conversion is cached
+        Assertions.assertEquals("/item/{id}", requestMetric.templatePath.get("/item/:id"));
     }
 }

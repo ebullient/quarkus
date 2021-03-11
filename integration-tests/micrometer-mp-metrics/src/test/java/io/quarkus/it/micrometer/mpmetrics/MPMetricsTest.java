@@ -1,6 +1,7 @@
 package io.quarkus.it.micrometer.mpmetrics;
 
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 
@@ -148,12 +149,21 @@ class MPMetricsTest {
     }
 
     @Test
+    @Order(16)
+    void testClient() {
+        when().get("/ping/one").then().statusCode(200).log().body();
+        when().get("/ping/two").then().statusCode(200).log().body();
+        when().get("/ping/three").then().statusCode(200).log().body();
+    }
+
+    @Test
     @Order(19)
     void validateMetricsOutput_2() {
         given()
                 .when().get("/q/metrics")
                 .then()
                 .statusCode(200)
+                .log().body()
 
                 // Prometheus body has ALL THE THINGS in no particular order
                 .body(containsString("status=\"404\""))
@@ -178,6 +188,12 @@ class MPMetricsTest {
                         "highestPrimeNumberSoFar 887.0"))
                 .body(containsString(
                         "io_quarkus_it_micrometer_mpmetrics_InjectedInstance_notPrime_total{scope=\"application\",}"))
+                .body(containsString(
+                        "http_client_requests_seconds_count{clientName=\"localhost\",method=\"GET\",outcome=\"SUCCESS\",status=\"200\",uri=\"/pong/{message}\",} 3.0"))
+                .body(containsString(
+                        "http_server_requests_seconds_count{method=\"GET\",outcome=\"SUCCESS\",status=\"200\",uri=\"/ping/{message}\",} 3.0"))
+                .body(containsString(
+                        "http_server_requests_seconds_count{method=\"GET\",outcome=\"SUCCESS\",status=\"200\",uri=\"/pong/{message}\",} 3.0"))
 
                 // /message is ignored in server config
                 .body(not(containsString("uri=\"/message\"")));

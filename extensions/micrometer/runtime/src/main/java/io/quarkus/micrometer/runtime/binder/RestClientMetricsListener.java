@@ -1,9 +1,10 @@
 package io.quarkus.micrometer.runtime.binder;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
-import javax.ws.rs.Path;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.ClientResponseContext;
@@ -11,7 +12,6 @@ import javax.ws.rs.client.ClientResponseFilter;
 
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import org.eclipse.microprofile.rest.client.spi.RestClientListener;
-import org.jboss.resteasy.microprofile.client.utils.ClientRequestContextUtils;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
@@ -19,12 +19,11 @@ import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import io.quarkus.arc.Arc;
-import io.quarkus.resteasy.common.runtime.MethodFullPathIndex;
 
 /**
  * This is initialized via ServiceFactory (static/non-CDI initialization)
  */
-public class ResteasyClientMetrics implements RestClientListener {
+public class RestClientMetricsListener implements RestClientListener {
 
     private final static String REQUEST_METRIC_PROPERTY = "restClientMetrics";
 
@@ -34,7 +33,7 @@ public class ResteasyClientMetrics implements RestClientListener {
 
     MetricsClientRequestFilter clientRequestFilter;
     MetricsClientResponseFilter clientResponseFilter;
-    MethodFullPathIndex methodFullPathIndex;
+    RestClientMetricInfoFactory restClientMetricInfoFactory;
 
     @Override
     public void onNewClient(Class<?> serviceInterface, RestClientBuilder builder) {
@@ -53,7 +52,13 @@ public class ResteasyClientMetrics implements RestClientListener {
             if (clientMetricsEnabled) {
                 this.clientRequestFilter = new MetricsClientRequestFilter(httpMetricsConfig);
                 this.clientResponseFilter = new MetricsClientResponseFilter();
-                this.methodFullPathIndex = Arc.container().instance(MethodFullPathIndex.class).get();
+
+                // Isolate the processing of path information, as it relies on different mechanisms
+                if (httpMetricsConfig.isResteasyReactive()) {
+                    restClientMetricInfoFactory = new RestEasyReactiveClientRequestMetricInfoFactory();
+                } else {
+                    restClientMetricInfoFactory = new RestEasyClientRequestMetricInfoFactory();
+                }
             }
             this.initialized = true;
         }
@@ -69,10 +74,10 @@ public class ResteasyClientMetrics implements RestClientListener {
 
         @Override
         public void filter(ClientRequestContext requestContext) throws IOException {
-            HttpRequestMetric requestMetric = new HttpRequestMetric(
+            HttpRequestMetricInfo requestMetric = restClientMetricInfoFactory.getHttpRequestMetricInfo(
                     binderConfiguration.getClientMatchPatterns(),
                     binderConfiguration.getClientIgnorePatterns(),
-                    requestContext.getUri().getPath());
+                    requestContext);
 
             if (requestMetric.isMeasure()) {
                 requestMetric.setSample(Timer.start(registry));
@@ -84,11 +89,11 @@ public class ResteasyClientMetrics implements RestClientListener {
     class MetricsClientResponseFilter implements ClientResponseFilter {
         @Override
         public void filter(ClientRequestContext requestContext, ClientResponseContext responseContext) throws IOException {
-            HttpRequestMetric requestMetric = getRequestMetric(requestContext);
+            HttpRequestMetricInfo requestMetric = getRequestMetric(requestContext);
 
             if (requestMetric != null) {
                 Timer.Sample sample = requestMetric.sample;
-                String requestPath = getHttpRequestPath(requestContext);
+                String requestPath = requestMetric.getHttpRequestPath();
                 int statusCode = responseContext.getStatus();
                 Timer.Builder builder = Timer.builder(HttpMeterFilterProvider.HTTP_CLIENT_REQUESTS)
                         .tags(Tags.of(
@@ -102,8 +107,8 @@ public class ResteasyClientMetrics implements RestClientListener {
             }
         }
 
-        private HttpRequestMetric getRequestMetric(ClientRequestContext requestContext) {
-            return (HttpRequestMetric) requestContext.getProperty(REQUEST_METRIC_PROPERTY);
+        private HttpRequestMetricInfo getRequestMetric(ClientRequestContext requestContext) {
+            return (HttpRequestMetricInfo) requestContext.getProperty(REQUEST_METRIC_PROPERTY);
         }
 
         private Tag clientName(ClientRequestContext requestContext) {
@@ -113,20 +118,10 @@ public class ResteasyClientMetrics implements RestClientListener {
             }
             return Tag.of("clientName", host);
         }
+    }
 
-        private String getHttpRequestPath(ClientRequestContext requestContext) {
-            Method method = ClientRequestContextUtils.getMethod(requestContext);
-            String path = methodFullPathIndex.getFullPath(method);
-            if (path == null) {
-                Path p = method.getAnnotation(Path.class);
-                if (p != null) {
-                    path = p.value();
-                } else {
-                    path = requestContext.getUri().getPath();
-                }
-                path = methodFullPathIndex.registerFullPath(method, path);
-            }
-            return path;
-        }
+    public static interface RestClientMetricInfoFactory {
+        HttpRequestMetricInfo getHttpRequestMetricInfo(Map<Pattern, String> matchPattern, List<Pattern> ignorePatterns,
+                ClientRequestContext requestContext);
     }
 }

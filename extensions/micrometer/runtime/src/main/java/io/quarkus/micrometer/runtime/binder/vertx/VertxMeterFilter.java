@@ -1,6 +1,6 @@
 package io.quarkus.micrometer.runtime.binder.vertx;
 
-import io.quarkus.micrometer.runtime.binder.HttpRequestMetric;
+import io.quarkus.micrometer.runtime.binder.HttpRequestMetricInfo;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -16,14 +16,14 @@ public class VertxMeterFilter implements Handler<RoutingContext> {
     @Override
     public void handle(RoutingContext routingContext) {
         final Context context = Vertx.currentContext();
-        HttpRequestMetric requestMetric = VertxHttpServerMetrics.retrieveRequestMetric(context);
+        VertxServerRequestMetricInfo requestMetric = VertxHttpServerMetrics.retrieveRequestMetric(context);
 
         if (requestMetric != null) {
             requestMetric.setRoutingContext(routingContext);
 
             // remember if we can skip path munging --> @see VertxMeterBinderRestEasyContainerFilter
             if (requestMetric.isPathMatched()) {
-                routingContext.put(HttpRequestMetric.HTTP_REQUEST_PATH_MATCHED, true);
+                routingContext.put(HttpRequestMetricInfo.HTTP_REQUEST_PATH_MATCHED, true);
             }
         }
         routingContext.next();

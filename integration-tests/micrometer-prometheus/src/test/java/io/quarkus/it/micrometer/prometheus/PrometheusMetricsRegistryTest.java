@@ -1,6 +1,7 @@
 package io.quarkus.it.micrometer.prometheus;
 
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 
@@ -119,6 +120,14 @@ class PrometheusMetricsRegistryTest {
                 .then()
                 .statusCode(200)
                 .body(containsString("OK"));
+    }
+
+    @Test
+    @Order(9)
+    void testClient() {
+        when().get("/ping/one").then().statusCode(200);
+        when().get("/ping/two").then().statusCode(200);
+        when().get("/ping/three").then().statusCode(200);
     }
 
     @Test

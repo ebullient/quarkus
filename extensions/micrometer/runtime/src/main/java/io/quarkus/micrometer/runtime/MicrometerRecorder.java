@@ -127,7 +127,7 @@ public class MicrometerRecorder {
         // configured, some measurements may be missed.
         Instance<MeterBinder> allBinders = beanManager.createInstance()
                 .select(MeterBinder.class, Any.Literal.INSTANCE);
-        allBinders.forEach(x -> x.bindTo(Metrics.globalRegistry));
+        allBinders.forEach(x -> bindToRegistry(x));
 
         context.addShutdownTask(new Runnable() {
             @Override
@@ -160,6 +160,14 @@ public class MicrometerRecorder {
         }
     }
 
+    void bindToRegistry(MeterBinder binder) {
+        try {
+            binder.bindTo(Metrics.globalRegistry);
+        } catch (RuntimeException re) {
+            log.warnf(re, "Unable to bind MeterBinder %s", binder.getClass().getName());
+        }
+    }
+
     public void registerMetrics(Consumer<MetricsFactory> consumer) {
         consumer.accept(factory);
     }
@@ -188,12 +196,13 @@ public class MicrometerRecorder {
     public RuntimeValue<HttpBinderConfiguration> configureHttpMetrics(
             boolean httpServerMetricsEnabled,
             boolean httpClientMetricsEnabled,
+            boolean useResteasyReactive,
             HttpServerConfig serverConfig,
             HttpClientConfig clientConfig,
             VertxConfig vertxConfig) {
         return new RuntimeValue<HttpBinderConfiguration>(
                 new HttpBinderConfiguration(httpServerMetricsEnabled,
-                        httpClientMetricsEnabled,
+                        httpClientMetricsEnabled, useResteasyReactive,
                         serverConfig, clientConfig, vertxConfig));
     }
 }

@@ -26,8 +26,9 @@ import io.quarkus.micrometer.runtime.config.runtime.VertxConfig;
 public class HttpBinderConfiguration {
     private static final Logger log = Logger.getLogger(HttpBinderConfiguration.class);
 
-    boolean serverEnabled = true;
-    boolean clientEnabled = true;
+    final boolean serverEnabled;
+    final boolean clientEnabled;
+    final boolean resteasyReactive;
 
     List<Pattern> serverIgnorePatterns = Collections.emptyList();
     Map<Pattern, String> serverMatchPatterns = Collections.emptyMap();
@@ -36,11 +37,12 @@ public class HttpBinderConfiguration {
     Map<Pattern, String> clientMatchPatterns = Collections.emptyMap();
 
     @SuppressWarnings("deprecation")
-    public HttpBinderConfiguration(boolean httpServerMetrics, boolean httpClientMetrics,
+    public HttpBinderConfiguration(boolean httpServerMetrics, boolean httpClientMetrics, boolean useResteasyReactive,
             HttpServerConfig serverConfig, HttpClientConfig clientConfig, VertxConfig vertxConfig) {
 
         serverEnabled = httpServerMetrics;
         clientEnabled = httpClientMetrics;
+        resteasyReactive = useResteasyReactive;
 
         if (serverEnabled) {
             // Handle deprecated/previous vertx properties as well
@@ -54,6 +56,10 @@ public class HttpBinderConfiguration {
             clientIgnorePatterns = getIgnorePatterns(clientConfig.ignorePatterns);
             clientMatchPatterns = getMatchPatterns(clientConfig.matchPatterns);
         }
+    }
+
+    public boolean isResteasyReactive() {
+        return resteasyReactive;
     }
 
     public boolean isServerEnabled() {

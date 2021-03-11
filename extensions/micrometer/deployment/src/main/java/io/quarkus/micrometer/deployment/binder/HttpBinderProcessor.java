@@ -69,7 +69,8 @@ public class HttpBinderProcessor {
 
     @BuildStep(onlyIf = { MicrometerProcessor.MicrometerEnabled.class })
     @Record(ExecutionTime.RUNTIME_INIT)
-    SyntheticBeanBuildItem enableHttpBinders(MicrometerRecorder recorder,
+    SyntheticBeanBuildItem enableHttpBinders(Capabilities capabilities,
+            MicrometerRecorder recorder,
             MicrometerConfig buildTimeConfig,
             HttpServerConfig serverConfig,
             HttpClientConfig clientConfig,
@@ -91,6 +92,7 @@ public class HttpBinderProcessor {
                 .setRuntimeInit()
                 .unremovable()
                 .runtimeValue(recorder.configureHttpMetrics(serverEnabled, clientEnabled,
+                        capabilities.isPresent(Capability.RESTEASY_REACTIVE),
                         serverConfig, clientConfig, vertxConfig))
                 .done();
     }

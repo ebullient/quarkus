@@ -9,7 +9,7 @@ import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import io.quarkus.micrometer.runtime.binder.HttpRequestMetric;
+import io.quarkus.micrometer.runtime.binder.HttpRequestMetricInfo;
 import io.quarkus.vertx.http.runtime.CurrentVertxRequest;
 import io.vertx.ext.web.RoutingContext;
 
@@ -29,10 +29,10 @@ public class VertxMeterBinderUndertowServletFilter extends HttpFilter {
         } finally {
             RoutingContext routingContext = CDI.current().select(CurrentVertxRequest.class).get().getCurrent();
             if (routingContext != null
-                    && routingContext.get(HttpRequestMetric.HTTP_REQUEST_PATH_MATCHED) == null
-                    && routingContext.get(HttpRequestMetric.HTTP_REQUEST_PATH) == null) {
+                    && routingContext.get(HttpRequestMetricInfo.HTTP_REQUEST_PATH_MATCHED) == null
+                    && routingContext.get(HttpRequestMetricInfo.HTTP_REQUEST_PATH) == null) {
 
-                routingContext.put(HttpRequestMetric.HTTP_REQUEST_PATH, req.getServletPath());
+                routingContext.put(HttpRequestMetricInfo.HTTP_REQUEST_PATH, req.getServletPath());
             }
         }
     }

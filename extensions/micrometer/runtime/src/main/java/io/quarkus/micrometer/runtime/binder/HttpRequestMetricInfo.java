@@ -2,50 +2,43 @@ package io.quarkus.micrometer.runtime.binder;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import org.jboss.logging.Logger;
 
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
-import io.vertx.ext.web.RoutingContext;
 
-public class HttpRequestMetric {
-    static final Logger log = Logger.getLogger(HttpRequestMetric.class);
+public abstract class HttpRequestMetricInfo {
+    static final Logger log = Logger.getLogger(HttpRequestMetricInfo.class);
 
     public static final String HTTP_REQUEST_PATH = "HTTP_REQUEST_PATH";
     public static final String HTTP_REQUEST_PATH_MATCHED = "HTTP_REQUEST_MATCHED_PATH";
     public static final Pattern VERTX_ROUTE_PARAM = Pattern.compile("^:(.*)$");
 
-    /** Cache of vert.x resolved paths: /item/:id --> /item/{id} */
-    final static ConcurrentHashMap<String, String> templatePath = new ConcurrentHashMap<>();
-
-    volatile RoutingContext routingContext;
-
     /** Do not measure requests until/unless a uri path is set */
-    final boolean measure;
+    final protected boolean measure;
 
     /** URI path used as a tag value for non-error requests */
-    final String path;
+    final protected String path;
 
     /** True IFF the path was revised by a matcher expression */
-    final boolean pathMatched;
+    final protected boolean pathMatched;
 
     /** Store the sample used to measure the request */
-    Timer.Sample sample;
+    protected Timer.Sample sample;
 
     /**
      * Store the tags associated with the request (change 1.6.0).
      * Default is empty, value assigned @ requestBegin
      */
-    Tags tags = Tags.empty();
+    protected Tags tags = Tags.empty();
 
     /**
      * Extract the path out of the uri. Return null if the path should be
      * ignored.
      */
-    public HttpRequestMetric(Map<Pattern, String> matchPattern, List<Pattern> ignorePatterns,
+    public HttpRequestMetricInfo(Map<Pattern, String> matchPattern, List<Pattern> ignorePatterns,
             String uri) {
         if (uri == null) {
             this.measure = false;
@@ -146,46 +139,7 @@ public class HttpRequestMetric {
         return uri.substring(i, queryStart);
     }
 
-    public String getHttpRequestPath() {
-        // Vertx binder configuration, see VertxMetricsTags
-        if (pathMatched) {
-            return path;
-        }
-        if (routingContext != null) {
-            // JAX-RS or Servlet container filter
-            String rcPath = routingContext.get(HTTP_REQUEST_PATH);
-            if (rcPath != null) {
-                return rcPath;
-            }
-
-            String matchedPath = routingContext.currentRoute().getPath();
-            if (matchedPath != null) {
-                // vertx-web or reactive route: is it templated?
-                if (matchedPath.contains(":")) {
-                    // Convert /item/:id to /item/{id} and save it for next time
-                    return templatePath.computeIfAbsent(matchedPath, k -> {
-                        String segments[] = k.split("/");
-                        for (int i = 0; i < segments.length; i++) {
-                            segments[i] = VERTX_ROUTE_PARAM.matcher(segments[i]).replaceAll("{$1}");
-                        }
-                        return String.join("/", segments);
-                    });
-                } else {
-                    // With no template vars to deal with, use the normalized version of the path
-                    return routingContext.normalisedPath();
-                }
-            }
-        }
-        return path;
-    }
-
-    public RoutingContext getRoutingContext() {
-        return routingContext;
-    }
-
-    public void setRoutingContext(RoutingContext routingContext) {
-        this.routingContext = routingContext;
-    }
+    public abstract String getHttpRequestPath();
 
     @Override
     public String toString() {
