@@ -44,6 +44,7 @@ public class HttpRequestMetricTest {
         requestMetric.routingContext = Mockito.mock(RoutingContext.class);
         Route currentRoute = Mockito.mock(Route.class);
 
+        Mockito.when(requestMetric.routingContext.normalisedPath()).thenReturn("/item");
         Mockito.when(requestMetric.routingContext.currentRoute()).thenReturn(currentRoute);
         Mockito.when(currentRoute.getPath()).thenReturn("/item");
 
