@@ -7,7 +7,6 @@ import javax.servlet.DispatcherType;
 
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
-import io.quarkus.arc.deployment.UnremovableBeanBuildItem;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -134,14 +133,12 @@ public class HttpBinderProcessor {
     }
 
     @BuildStep(onlyIf = { HttpClientBinderEnabled.class })
-    UnremovableBeanBuildItem registerRestClientListener(BuildProducer<NativeImageResourceBuildItem> resource,
+    void registerRestClientListener(BuildProducer<NativeImageResourceBuildItem> resource,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClass) {
         resource.produce(new NativeImageResourceBuildItem(
                 "META-INF/services/org.eclipse.microprofile.rest.client.spi.RestClientListener"));
         reflectiveClass
                 .produce(new ReflectiveClassBuildItem(true, true, REST_CLIENT_METRICS_LISTENER));
-
-        return new UnremovableBeanBuildItem(new UnremovableBeanBuildItem.BeanClassNameExclusion(REST_CLIENT_HTTP_CONFIG));
     }
 
     private void createAdditionalBean(BuildProducer<AdditionalBeanBuildItem> additionalBeans, String className) {
