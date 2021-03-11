@@ -7,11 +7,14 @@ public final class ResteasyReactiveSimplifiedResourceInfo implements SimpleResou
     private final String methodName;
     private final Class<?> resourceClass;
     private final Class<?>[] parameterTypes;
+    private final String templateUriPath;
 
-    public ResteasyReactiveSimplifiedResourceInfo(String methodName, Class<?> resourceClass, Class<?>[] parameterTypes) {
+    public ResteasyReactiveSimplifiedResourceInfo(String methodName, Class<?> resourceClass, Class<?>[] parameterTypes,
+            String templateUriPath) {
         this.methodName = methodName;
         this.resourceClass = resourceClass;
         this.parameterTypes = parameterTypes;
+        this.templateUriPath = templateUriPath;
     }
 
     @Override
@@ -27,5 +30,10 @@ public final class ResteasyReactiveSimplifiedResourceInfo implements SimpleResou
     @Override
     public Class<?>[] parameterTypes() {
         return parameterTypes;
+    }
+
+    @Override
+    public String getTemplateUriPath() {
+        return templateUriPath;
     }
 }

@@ -13,10 +13,12 @@ import org.jboss.resteasy.spi.ConstructorInjector;
 import org.jboss.resteasy.spi.Failure;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.HttpResponse;
+import org.jboss.resteasy.spi.MethodInjector;
 import org.jboss.resteasy.spi.PropertyInjector;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.jboss.resteasy.spi.metadata.ResourceClass;
 import org.jboss.resteasy.spi.metadata.ResourceConstructor;
+import org.jboss.resteasy.spi.metadata.ResourceLocator;
 
 import io.quarkus.arc.runtime.BeanContainer;
 
@@ -24,6 +26,7 @@ public class QuarkusInjectorFactory extends InjectorFactoryImpl {
 
     private static final Logger log = Logger.getLogger("io.quarkus.resteasy.runtime");
     static volatile BeanContainer CONTAINER = null;
+    static volatile MethodFullPathIndex FULL_PATH_INDEX = null;
     static volatile Function<Object, Object> PROXY_UNWRAPPER;
 
     @SuppressWarnings("rawtypes")
@@ -51,6 +54,12 @@ public class QuarkusInjectorFactory extends InjectorFactoryImpl {
     public PropertyInjector createPropertyInjector(ResourceClass resourceClass, ResteasyProviderFactory providerFactory) {
         PropertyInjector delegate = super.createPropertyInjector(resourceClass, providerFactory);
         return new UnwrappingPropertyInjector(delegate);
+    }
+
+    @Override
+    public MethodInjector createMethodInjector(ResourceLocator method, ResteasyProviderFactory factory) {
+        FULL_PATH_INDEX.registerFullPath(method.getMethod(), method.getFullpath());
+        return super.createMethodInjector(method, factory);
     }
 
     private static class UnwrappingPropertyInjector implements PropertyInjector {

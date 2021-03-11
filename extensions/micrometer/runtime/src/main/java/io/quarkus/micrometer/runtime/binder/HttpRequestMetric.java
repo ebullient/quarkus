@@ -157,20 +157,23 @@ public class HttpRequestMetric {
             if (rcPath != null) {
                 return rcPath;
             }
-            // vertx-web or reactive route
+
             String matchedPath = routingContext.currentRoute().getPath();
             if (matchedPath != null) {
+                // vertx-web or reactive route: is it templated?
                 if (matchedPath.contains(":")) {
                     // Convert /item/:id to /item/{id} and save it for next time
-                    matchedPath = templatePath.computeIfAbsent(matchedPath, k -> {
+                    return templatePath.computeIfAbsent(matchedPath, k -> {
                         String segments[] = k.split("/");
                         for (int i = 0; i < segments.length; i++) {
                             segments[i] = VERTX_ROUTE_PARAM.matcher(segments[i]).replaceAll("{$1}");
                         }
                         return String.join("/", segments);
                     });
+                } else {
+                    // With no template vars to deal with, use the normalized version of the path
+                    return routingContext.normalisedPath();
                 }
-                return matchedPath;
             }
         }
         return path;
