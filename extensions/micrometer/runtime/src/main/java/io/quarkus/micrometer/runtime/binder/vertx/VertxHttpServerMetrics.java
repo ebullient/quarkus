@@ -12,6 +12,7 @@ import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.binder.http.Outcome;
 import io.quarkus.micrometer.runtime.binder.HttpBinderConfiguration;
+import io.quarkus.micrometer.runtime.binder.HttpMeterFilterProvider;
 import io.quarkus.micrometer.runtime.binder.HttpMetricsCommon;
 import io.quarkus.micrometer.runtime.binder.HttpRequestMetric;
 import io.vertx.core.Context;
@@ -35,18 +36,15 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
     static final Logger log = Logger.getLogger(VertxHttpServerMetrics.class);
     static final String METRICS_CONTEXT = "HTTP_REQUEST_METRICS_CONTEXT";
 
+    static final String HTTP_SERVER_WEBSOCKET_CONNECTIONS = HttpMeterFilterProvider.HTTP_SERVER_WEBSOCKET_CONNECTIONS;
+    static final String HTTP_SERVER_PUSH = HttpMeterFilterProvider.HTTP_SERVER_PUSH;
+    static final String HTTP_SERVER_REQUESTS = HttpMeterFilterProvider.HTTP_SERVER_REQUESTS;
+
     final List<Pattern> ignorePatterns;
     final Map<Pattern, String> matchPatterns;
 
-    final String nameWebsocketConnections;
-    final String nameHttpServerPush;
-    final String nameHttpServerRequests;
-
     VertxHttpServerMetrics(MeterRegistry registry, HttpBinderConfiguration config) {
         super(registry, "http.server");
-        nameWebsocketConnections = "http.server.websocket.connections";
-        nameHttpServerPush = "http.server.push";
-        nameHttpServerRequests = "http.server.requests";
 
         ignorePatterns = config.getServerIgnorePatterns();
         matchPatterns = config.getServerMatchPatterns();
@@ -95,7 +93,7 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
             HttpServerResponse response) {
         HttpRequestMetric requestMetric = new HttpRequestMetric(matchPatterns, ignorePatterns, uri);
         if (requestMetric.isMeasure()) {
-            registry.counter(nameHttpServerPush, Tags.of(
+            registry.counter(HTTP_SERVER_PUSH, Tags.of(
                     HttpMetricsCommon.uri(requestMetric.getPath(), response.getStatusCode()),
                     VertxMetricsTags.method(method),
                     VertxMetricsTags.outcome(response),
@@ -144,7 +142,7 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
         Timer.Sample sample = getRequestSample(requestMetric);
         if (sample != null) {
             String requestPath = getServerRequestPath(requestMetric);
-            Timer.Builder builder = Timer.builder(nameHttpServerRequests)
+            Timer.Builder builder = Timer.builder(HTTP_SERVER_REQUESTS)
                     .tags(requestMetric.getTags())
                     .tags(Tags.of(
                             HttpMetricsCommon.uri(requestPath, 0),
@@ -167,7 +165,7 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
         Timer.Sample sample = getRequestSample(requestMetric);
         if (sample != null) {
             String requestPath = getServerRequestPath(requestMetric);
-            Timer.Builder builder = Timer.builder(nameHttpServerRequests)
+            Timer.Builder builder = Timer.builder(HTTP_SERVER_REQUESTS)
                     .tags(requestMetric.getTags())
                     .tags(Tags.of(
                             HttpMetricsCommon.uri(requestPath, response.getStatusCode()),
@@ -192,7 +190,7 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
         log.debugf("websocket connected: %s, %s, %s", socketMetric, requestMetric, serverWebSocket);
         String path = getServerRequestPath(requestMetric);
         if (path != null) {
-            return LongTaskTimer.builder(nameWebsocketConnections)
+            return LongTaskTimer.builder(HTTP_SERVER_WEBSOCKET_CONNECTIONS)
                     .tags(Tags.of(HttpMetricsCommon.uri(path, 0)))
                     .register(registry)
                     .start();
