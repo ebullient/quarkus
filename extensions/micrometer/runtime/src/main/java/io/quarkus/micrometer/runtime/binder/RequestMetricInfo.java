@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 
 import org.jboss.logging.Logger;
 
-import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 
 public class RequestMetricInfo {
@@ -27,79 +26,41 @@ public class RequestMetricInfo {
     /** Store the sample used to measure the request */
     protected Timer.Sample sample;
 
-    /**
-     * Store the tags associated with the request (change 1.6.0).
-     * Default is empty, value assigned @ requestBegin
-     */
-    protected Tags tags = Tags.empty();
-
-    /**
-     * Extract the path out of the uri. Return null if the path should be
-     * ignored.
-     */
-    public RequestMetricInfo(Map<Pattern, String> matchPattern, List<Pattern> ignorePatterns,
-            String uri) {
-        if (uri == null) {
-            this.measure = false;
-            this.pathMatched = false;
-            this.path = null;
-            return;
-        }
-
-        boolean matched = false;
-        String workingPath = extractPath(uri);
-        String finalPath = workingPath;
-        if ("/".equals(workingPath) || workingPath.isEmpty()) {
-            finalPath = "/";
-        } else {
-            // Label value consistency: result should begin with a '/' and should not end with one
-            workingPath = HttpCommonTags.MULTIPLE_SLASH_PATTERN.matcher('/' + workingPath).replaceAll("/");
-            workingPath = HttpCommonTags.TRAILING_SLASH_PATTERN.matcher(workingPath).replaceAll("");
-            if (workingPath.isEmpty()) {
-                finalPath = "/";
-            } else {
-                finalPath = workingPath;
-                // test path against configured patterns (whole path)
-                for (Map.Entry<Pattern, String> mp : matchPattern.entrySet()) {
-                    if (mp.getKey().matcher(workingPath).matches()) {
-                        finalPath = mp.getValue();
-                        matched = true;
-                        break;
-                    }
-                }
-            }
-        }
-        this.path = finalPath;
-        this.pathMatched = matched;
-
-        // Compare path against "ignore this path" patterns
-        for (Pattern p : ignorePatterns) {
-            if (p.matcher(this.path).matches()) {
-                log.debugf("Path %s ignored; matches pattern %s", uri, p.pattern());
-                this.measure = false;
-                return;
-            }
-        }
-        this.measure = true;
+    public RequestMetricInfo setSample(Timer.Sample sample) {
+        this.sample = sample;
+        return this;
     }
 
     public Timer.Sample getSample() {
         return sample;
     }
 
-    public void setSample(Timer.Sample sample) {
-        this.sample = sample;
+    /**
+     * Normalize and filter request path against match patterns
+     *
+     * @param uri Uri for request
+     * @param ignorePatterns
+     * @param matchPatterns
+     * @return final uri for tag, or null to skip measurement
+     */
+    protected String getNormalizedUriPath(Map<Pattern, String> matchPatterns, List<Pattern> ignorePatterns, String uri) {
+        System.out.println("HERE, NOW WHAT: uri =" + uri);
+        // Normalize path
+        String path = normalizePath(uri);
+        if (path.length() > 1) {
+            String origPath = path;
+            // Look for configured matches, then inferred templates
+            path = applyMatchPatterns(origPath, matchPatterns);
+            if (path.equals(origPath)) {
+                path = normalizePath(applyTemplateMatching(origPath));
+            }
+        }
+        System.out.println("DONE .............. =" + path);
+        return filterIgnored(path, ignorePatterns);
     }
 
-    public Tags getTags() {
-        return tags;
-    }
-
-    public void setTags(Tags tags) {
-        this.tags = tags;
-    }
-
-    public String getPath() {
+    /** Subclassess should override with appropriate mechanisms for finding templated urls */
+    protected String applyTemplateMatching(String path) {
         return path;
     }
 
@@ -142,12 +103,16 @@ public class RequestMetricInfo {
         return path;
     }
 
-    @Override
-    public String toString() {
-        return "HttpRequestMetric{path=" + path
-                + ",pathMatched=" + pathMatched
-                + ",measure=" + measure
-                + ",tags=" + tags
-                + '}';
+    protected static String normalizePath(String uri) {
+        if (uri == null || uri.isEmpty() || ROOT.equals(uri)) {
+            return ROOT;
+        }
+        // Label value consistency: result should begin with a '/' and should not end with one
+        String workingPath = MULTIPLE_SLASH_PATTERN.matcher('/' + uri).replaceAll("/");
+        workingPath = TRAILING_SLASH_PATTERN.matcher(workingPath).replaceAll("");
+        if (workingPath.isEmpty()) {
+            return ROOT;
+        }
+        return workingPath;
     }
 }

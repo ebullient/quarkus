@@ -81,18 +81,24 @@ public class RestClientMetricsListener implements RestClientListener {
         public void filter(ClientRequestContext requestContext, ClientResponseContext responseContext) throws IOException {
             RequestMetricInfo requestMetric = getRequestMetric(requestContext);
             if (requestMetric != null) {
-                Timer.Sample sample = requestMetric.sample;
-                String requestPath = requestMetric.getHttpRequestPath();
-                int statusCode = responseContext.getStatus();
-                Timer.Builder builder = Timer.builder(httpMetricsConfig.getHttpClientRequestsName())
-                        .tags(Tags.of(
-                                HttpCommonTags.method(requestContext.getMethod()),
-                                HttpCommonTags.uri(requestPath, statusCode),
-                                HttpCommonTags.outcome(statusCode),
-                                HttpCommonTags.status(statusCode),
-                                clientName(requestContext)));
+                String requestPath = requestMetric.getNormalizedUriPath(
+                        httpMetricsConfig.clientMatchPatterns,
+                        httpMetricsConfig.clientIgnorePatterns,
+                        requestContext.getUri().getPath());
+                if (requestPath != null) {
+                    Timer.Sample sample = requestMetric.getSample();
+                    int statusCode = responseContext.getStatus();
 
-                sample.stop(builder.register(registry));
+                    Timer.Builder builder = Timer.builder(httpMetricsConfig.getHttpClientRequestsName())
+                            .tags(Tags.of(
+                                    HttpCommonTags.method(requestContext.getMethod()),
+                                    HttpCommonTags.uri(requestPath, statusCode),
+                                    HttpCommonTags.outcome(statusCode),
+                                    HttpCommonTags.status(statusCode),
+                                    clientName(requestContext)));
+
+                    sample.stop(builder.register(registry));
+                }
             }
         }
 

@@ -12,57 +12,77 @@ public class HttpRequestMetric extends RequestMetricInfo {
     public static final Pattern VERTX_ROUTE_PARAM = Pattern.compile("^:(.*)$");
 
     /** Cache of vert.x resolved paths: /item/:id --> /item/{id} */
-    final static ConcurrentHashMap<String, String> templatePath = new ConcurrentHashMap<>();
+    final static ConcurrentHashMap<String, String> vertxWebToUriTemplate = new ConcurrentHashMap<>();
 
-    volatile RoutingContext routingContext;
+    protected HttpServerRequest request;
+    protected String initialPath;
+    protected String templatePath;
+    protected String currentRoutePath;
 
-    /**
-     * Extract the path out of the uri. Return null if the path should be
-     * ignored.
-     *
-     * @param matchPattern
-     * @param ignorePatterns
-     * @param uri
-     */
-    public HttpRequestMetric(Map<Pattern, String> matchPattern, List<Pattern> ignorePatterns, String uri) {
-        super(matchPattern, ignorePatterns, uri);
+    public HttpRequestMetric(String uri) {
+        this.initialPath = uri;
     }
 
-    public String getHttpRequestPath() {
-        // Vertx binder configuration, see VertxMetricsTags
-        if (pathMatched) {
-            return path;
+    public HttpRequestMetric(HttpServerRequest request) {
+        this.request = request;
+        this.initialPath = this.request.path();
+    }
+
+    public String getNormalizedUriPath(Map<Pattern, String> matchPatterns, List<Pattern> ignorePatterns) {
+        return super.getNormalizedUriPath(matchPatterns, ignorePatterns, initialPath);
+    }
+
+    public String applyTemplateMatching(String path) {
+        System.out.println("HERE, NOW WHAT: path=" + path + ", currentRoutePath=" + currentRoutePath);
+        System.out.println(" ----:     routePath=" + currentRoutePath);
+
+        // JAX-RS or Servlet container filter
+        if (templatePath != null) {
+            System.out.println(" ----: containerPath=" + templatePath);
+            return normalizePath(templatePath);
         }
-        if (routingContext != null) {
-            // JAX-RS or Servlet container filter
-            String rcPath = routingContext.get(HTTP_REQUEST_PATH);
-            if (rcPath != null) {
-                return rcPath;
-            }
-            // vertx-web or reactive route
-            String matchedPath = routingContext.currentRoute().getPath();
-            if (matchedPath != null) {
-                if (matchedPath.contains(":")) {
-                    // Convert /item/:id to /item/{id} and save it for next time
-                    matchedPath = templatePath.computeIfAbsent(matchedPath, k -> {
-                        String segments[] = k.split("/");
-                        for (int i = 0; i < segments.length; i++) {
-                            segments[i] = VERTX_ROUTE_PARAM.matcher(segments[i]).replaceAll("{$1}");
-                        }
-                        return String.join("/", segments);
-                    });
+
+        // vertx-web or reactive route: is it templated?
+        if (currentRoutePath != null && currentRoutePath.contains(":")) {
+            System.out.println(" -: vertx template = " + currentRoutePath);
+            // Convert /item/:id to /item/{id} and save it for next time
+            return vertxWebToUriTemplate.computeIfAbsent(currentRoutePath, k -> {
+                String segments[] = k.split("/");
+                for (int i = 0; i < segments.length; i++) {
+                    segments[i] = VERTX_ROUTE_PARAM.matcher(segments[i]).replaceAll("{$1}");
                 }
-                return matchedPath;
-            }
+                return normalizePath(String.join("/", segments));
+            });
         }
+
         return path;
     }
 
-    public RoutingContext getRoutingContext() {
-        return routingContext;
+    public HttpServerRequest request() {
+        return request;
     }
 
-    public void setRoutingContext(RoutingContext routingContext) {
-        this.routingContext = routingContext;
+    public String initialPath() {
+        return initialPath;
+    }
+
+    public void setTemplatePath(String path) {
+        this.templatePath = path;
+    }
+
+    public void appendCurrentRoutePath(String path) {
+        if (path != null && !path.isEmpty()) {
+            this.currentRoutePath = path;
+        }
+    }
+
+    public void getRoutingContext(RoutingContext context) {
+        appendCurrentRoutePath(context.currentRoute().getPath());
+    }
+
+    @Override
+    public String toString() {
+        return "HttpRequestMetric [initialPath=" + initialPath + ", currentRoutePath=" + currentRoutePath
+                + ", templatePath=" + templatePath + ", request=" + request + "]";
     }
 }

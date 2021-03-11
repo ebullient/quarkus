@@ -53,6 +53,7 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
 
     /**
      * Stash the RequestMetric in the Vertx Context
+     * Note: dropped in Vert.x 4
      *
      * @param context Vertx context to store RequestMetric in
      * @param requestMetric
@@ -65,7 +66,8 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
     }
 
     /**
-     * Retrieve and remove the RequestMetric from the Vertx Context
+     * Retrieve and remove the RequestMetric from the Vertx Context: YUCK
+     * Note: dropped in Vert.x 4
      *
      * @param context
      * @return the RequestMetricContext stored in the Vertx Context, or null
@@ -92,16 +94,18 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
     @Override
     public HttpRequestMetric responsePushed(Map<String, Object> socketMetric, HttpMethod method, String uri,
             HttpServerResponse response) {
-        HttpRequestMetric requestMetric = new HttpRequestMetric(matchPatterns, ignorePatterns, uri);
-        if (requestMetric.isMeasure()) {
+
+        HttpRequestMetric requestMetric = new HttpRequestMetric(uri);
+        String path = requestMetric.getNormalizedUriPath(matchPatterns, ignorePatterns);
+        if (path != null) {
             registry.counter(nameHttpServerPush, Tags.of(
-                    HttpCommonTags.uri(requestMetric.getPath(), response.getStatusCode()),
                     VertxMetricsTags.method(method),
+                    HttpCommonTags.uri(path, response.getStatusCode()),
                     VertxMetricsTags.outcome(response),
                     HttpCommonTags.status(response.getStatusCode())))
                     .increment();
         }
-        log.debugf("responsePushed %s: %s, %s", uri, socketMetric, requestMetric);
+        log.debugf("responsePushed %s, %s", socketMetric, requestMetric);
         return requestMetric;
     }
 
@@ -116,18 +120,11 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
      */
     @Override
     public HttpRequestMetric requestBegin(Map<String, Object> socketMetric, HttpServerRequest request) {
-        // evaluate and remember the path to monitor for use later (maybe a 404 or redirect..)
-        HttpRequestMetric requestMetric = new HttpRequestMetric(matchPatterns, ignorePatterns, request.path());
+        HttpRequestMetric requestMetric = new HttpRequestMetric(request);
+        requestMetric.setSample(Timer.start(registry));
         setRequestMetric(Vertx.currentContext(), requestMetric);
 
-        if (requestMetric.isMeasure()) {
-            // If we're measuring this request, create/remember the sample
-            requestMetric.setSample(Timer.start(registry));
-            requestMetric.setTags(Tags.of(VertxMetricsTags.method(request.method())));
-
-            log.debugf("requestBegin %s: %s, %s", requestMetric.getPath(), socketMetric, requestMetric);
-        }
-
+        log.debugf("requestBegin %s, %s", socketMetric, requestMetric);
         return requestMetric;
     }
 
@@ -139,14 +136,15 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
      */
     @Override
     public void requestReset(HttpRequestMetric requestMetric) {
-        log.debugf("requestReset: %s", requestMetric);
-        Timer.Sample sample = getRequestSample(requestMetric);
-        if (sample != null) {
-            String requestPath = getServerRequestPath(requestMetric);
+        log.debugf("requestReset %s", requestMetric);
+
+        String path = requestMetric.getNormalizedUriPath(matchPatterns, ignorePatterns);
+        if (path != null) {
+            Timer.Sample sample = requestMetric.getSample();
             Timer.Builder builder = Timer.builder(nameHttpServerRequests)
-                    .tags(requestMetric.getTags())
                     .tags(Tags.of(
-                            HttpCommonTags.uri(requestPath, 0),
+                            VertxMetricsTags.method(requestMetric.request().method()),
+                            HttpCommonTags.uri(path, 0),
                             Outcome.CLIENT_ERROR.asTag(),
                             HttpCommonTags.STATUS_RESET));
             sample.stop(builder.register(registry));
@@ -161,15 +159,15 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
      */
     @Override
     public void responseEnd(HttpRequestMetric requestMetric, HttpServerResponse response) {
-        log.debugf("responseEnd: %s, %s", requestMetric, response);
+        log.debugf("responseEnd %s, %s", response, requestMetric);
 
-        Timer.Sample sample = getRequestSample(requestMetric);
-        if (sample != null) {
-            String requestPath = getServerRequestPath(requestMetric);
+        String path = requestMetric.getNormalizedUriPath(matchPatterns, ignorePatterns);
+        if (path != null) {
+            Timer.Sample sample = requestMetric.getSample();
             Timer.Builder builder = Timer.builder(nameHttpServerRequests)
-                    .tags(requestMetric.getTags())
                     .tags(Tags.of(
-                            HttpCommonTags.uri(requestPath, response.getStatusCode()),
+                            VertxMetricsTags.method(requestMetric.request().method()),
+                            HttpCommonTags.uri(path, response.getStatusCode()),
                             VertxMetricsTags.outcome(response),
                             HttpCommonTags.status(response.getStatusCode())));
 
@@ -188,8 +186,9 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
     @Override
     public LongTaskTimer.Sample connected(Map<String, Object> socketMetric, HttpRequestMetric requestMetric,
             ServerWebSocket serverWebSocket) {
-        log.debugf("websocket connected: %s, %s, %s", socketMetric, requestMetric, serverWebSocket);
-        String path = getServerRequestPath(requestMetric);
+        log.debugf("websocket connected %s, %s, %s", socketMetric, serverWebSocket, requestMetric);
+
+        String path = requestMetric.getNormalizedUriPath(matchPatterns, ignorePatterns);
         if (path != null) {
             return LongTaskTimer.builder(nameWebsocketConnections)
                     .tags(Tags.of(HttpCommonTags.uri(path, 0)))
@@ -206,7 +205,7 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
      */
     @Override
     public void disconnected(LongTaskTimer.Sample websocketMetric) {
-        log.debugf("websocket disconnected: %s", websocketMetric);
+        log.debugf("websocket disconnected %s", websocketMetric);
         if (websocketMetric != null) {
             websocketMetric.stop();
         }
