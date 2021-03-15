@@ -30,6 +30,8 @@ public class UriTagTest {
             .overrideConfigKey("quarkus.micrometer.binder-enabled-default", "false")
             .overrideConfigKey("quarkus.micrometer.binder.http-client.enabled", "true")
             .overrideConfigKey("quarkus.micrometer.binder.http-server.enabled", "true")
+            .overrideConfigKey("quarkus.micrometer.binder.http-server.match-patterns", "/one=/two")
+            .overrideConfigKey("quarkus.micrometer.binder.http-server.ignore-patterns", "/two")
             .overrideConfigKey("quarkus.micrometer.binder.vertx.enabled", "true")
             .overrideConfigKey("pingpong/mp-rest/url", "${test.url}")
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
@@ -123,6 +125,18 @@ public class UriTagTest {
         @Path("ping/{message}")
         public String ping(@PathParam("message") String message) {
             return pingRestClient.pingpong(message);
+        }
+
+        @GET
+        @Path("one")
+        public String one() {
+            return "OK";
+        }
+
+        @GET
+        @Path("two")
+        public String two() {
+            return "OK";
         }
     }
 }

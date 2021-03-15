@@ -64,15 +64,9 @@ public class RestClientMetricsListener implements RestClientListener {
 
         @Override
         public void filter(ClientRequestContext requestContext) throws IOException {
-            RequestMetricInfo requestMetric = new RequestMetricInfo(
-                    binderConfiguration.getClientMatchPatterns(),
-                    binderConfiguration.getClientIgnorePatterns(),
-                    requestContext.getUri().getPath());
-
-            if (requestMetric.isMeasure()) {
-                requestMetric.setSample(Timer.start(registry));
-                requestContext.setProperty(REQUEST_METRIC_PROPERTY, requestMetric);
-            }
+            RequestMetricInfo requestMetric = new RestClientMetricInfo(requestContext);
+            requestMetric.setSample(Timer.start(registry));
+            requestContext.setProperty(REQUEST_METRIC_PROPERTY, requestMetric);
         }
     }
 
@@ -112,6 +106,15 @@ public class RestClientMetricsListener implements RestClientListener {
                 host = "none";
             }
             return Tag.of("clientName", host);
+        }
+    }
+
+    class RestClientMetricInfo extends RequestMetricInfo {
+        ClientRequestContext requestContext;
+
+        RestClientMetricInfo(ClientRequestContext requestContext) {
+            super();
+            this.requestContext = requestContext;
         }
     }
 }

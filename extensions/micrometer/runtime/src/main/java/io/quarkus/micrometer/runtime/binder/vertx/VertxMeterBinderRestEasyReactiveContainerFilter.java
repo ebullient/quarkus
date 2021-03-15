@@ -6,10 +6,10 @@ import org.jboss.resteasy.reactive.server.ServerRequestFilter;
 
 import io.vertx.ext.web.RoutingContext;
 
-public class VertxMeterBinderQuarkusRestContainerFilter {
+public class VertxMeterBinderRestEasyReactiveContainerFilter {
 
     @ServerRequestFilter
     public void filter(UriInfo uriInfo, RoutingContext routingContext) {
-        VertxMeterBinderContainerFilterUtil.doFilter(routingContext, uriInfo);
+
     }
 }

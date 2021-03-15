@@ -1,11 +1,10 @@
 package io.quarkus.micrometer.runtime.binder.vertx;
 
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import io.quarkus.micrometer.runtime.binder.RequestMetricInfo;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RoutingContext;
 
 public class HttpRequestMetric extends RequestMetricInfo {

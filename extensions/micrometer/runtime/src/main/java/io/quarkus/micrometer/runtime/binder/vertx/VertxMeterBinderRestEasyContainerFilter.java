@@ -1,6 +1,6 @@
 package io.quarkus.micrometer.runtime.binder.vertx;
 
-import javax.enterprise.inject.spi.CDI;
+import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 

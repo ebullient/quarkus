@@ -11,17 +11,11 @@ import io.micrometer.core.instrument.Timer;
 public class RequestMetricInfo {
     static final Logger log = Logger.getLogger(RequestMetricInfo.class);
 
+    public static final Pattern TRAILING_SLASH_PATTERN = Pattern.compile("/$");
+    public static final Pattern MULTIPLE_SLASH_PATTERN = Pattern.compile("//+");
+    public static final String ROOT = "/";
+
     public static final String HTTP_REQUEST_PATH = "HTTP_REQUEST_PATH";
-    public static final String HTTP_REQUEST_PATH_MATCHED = "HTTP_REQUEST_MATCHED_PATH";
-
-    /** Do not measure requests until/unless a uri path is set */
-    protected final boolean measure;
-
-    /** URI path used as a tag value for non-error requests */
-    protected final String path;
-
-    /** True IFF the path was revised by a matcher expression */
-    protected final boolean pathMatched;
 
     /** Store the sample used to measure the request */
     protected Timer.Sample sample;
@@ -64,42 +58,28 @@ public class RequestMetricInfo {
         return path;
     }
 
-    public boolean isMeasure() {
-        return measure;
-    }
-
-    public boolean isPathMatched() {
-        return pathMatched;
-    }
-
-    private static String extractPath(String uri) {
-        if (uri.isEmpty()) {
-            return uri;
-        }
-        int i;
-        if (uri.charAt(0) == '/') {
-            i = 0;
-        } else {
-            i = uri.indexOf("://");
-            if (i == -1) {
-                i = 0;
-            } else {
-                i = uri.indexOf('/', i + 3);
-                if (i == -1) {
-                    // contains no /
-                    return "/";
+    static String applyMatchPatterns(String path, Map<Pattern, String> matchPatterns) {
+        if (!matchPatterns.isEmpty()) {
+            for (Map.Entry<Pattern, String> mp : matchPatterns.entrySet()) {
+                if (mp.getKey().matcher(path).matches()) {
+                    log.debugf("Path %s matched pattern %s, using %s", path, mp.getKey(), mp.getValue());
+                    return mp.getValue();
                 }
             }
         }
-
-        int queryStart = uri.indexOf('?', i);
-        if (queryStart == -1) {
-            queryStart = uri.length();
-        }
-        return uri.substring(i, queryStart);
+        return path;
     }
 
-    public String getHttpRequestPath() {
+    /** Return path or null if it should be ignored */
+    static String filterIgnored(String path, List<Pattern> ignorePatterns) {
+        if (!ignorePatterns.isEmpty()) {
+            for (Pattern p : ignorePatterns) {
+                if (p.matcher(path).matches()) {
+                    log.debugf("Path %s ignored; matches pattern %s", path, p.pattern());
+                    return null;
+                }
+            }
+        }
         return path;
     }
 

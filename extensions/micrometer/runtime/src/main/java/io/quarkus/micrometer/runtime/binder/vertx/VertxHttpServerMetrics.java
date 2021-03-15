@@ -55,9 +55,12 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
      * Stash the RequestMetric in the Vertx Context
      * Note: dropped in Vert.x 4
      *
+     * TODO: with Vert.x 4, this can be dropped
+     *
      * @param context Vertx context to store RequestMetric in
      * @param requestMetric
      * @see VertxMeterFilter
+     * @see #retrieveRequestMetric(Context)
      */
     public static void setRequestMetric(Context context, HttpRequestMetric requestMetric) {
         if (context != null) {
@@ -72,6 +75,7 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
      * @param context
      * @return the RequestMetricContext stored in the Vertx Context, or null
      * @see VertxMeterFilter
+     * @see #setRequestMetric(Context, HttpRequestMetric)
      */
     public static HttpRequestMetric retrieveRequestMetric(Context context) {
         if (context != null) {
@@ -147,6 +151,7 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
                             HttpCommonTags.uri(path, 0),
                             Outcome.CLIENT_ERROR.asTag(),
                             HttpCommonTags.STATUS_RESET));
+
             sample.stop(builder.register(registry));
         }
     }
@@ -209,19 +214,5 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
         if (websocketMetric != null) {
             websocketMetric.stop();
         }
-    }
-
-    private Timer.Sample getRequestSample(HttpRequestMetric metricsContext) {
-        if (metricsContext == null) {
-            return null;
-        }
-        return metricsContext.getSample();
-    }
-
-    private String getServerRequestPath(HttpRequestMetric metricsContext) {
-        if (metricsContext == null) {
-            return null;
-        }
-        return metricsContext.getHttpRequestPath();
     }
 }
