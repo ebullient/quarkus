@@ -60,11 +60,14 @@ public class UriTagWithHttpApplicationRootTest {
         when().get("/foo/vertx/item/123").then().statusCode(200);
         when().get("/foo/servlet/12345").then().statusCode(200);
 
+        System.out.println("Server paths\n" + Util.listMeters(registry.find("http.server.requests").meters(), "uri"));
+        System.out.println("Client paths\n" + Util.listMeters(registry.find("http.server.requests").meters(), "uri"));
+
         // URIs for server should include Application Path: /bar/ping/{message}, /bar/pong/{message}
-        Assertions.assertEquals(1, registry.find("http.server.requests").tag("uri", "/ping/{message}").timers().size(),
+        Assertions.assertEquals(1, registry.find("http.server.requests").tag("uri", "/bar/ping/{message}").timers().size(),
                 "/bar/ping/{message} should be returned by JAX-RS. Found:\n"
                         + Util.listMeters(registry.find("http.server.requests").meters(), "uri"));
-        Assertions.assertEquals(1, registry.find("http.server.requests").tag("uri", "/pong/{message}").timers().size(),
+        Assertions.assertEquals(1, registry.find("http.server.requests").tag("uri", "/bar/pong/{message}").timers().size(),
                 "/bar/pong/{message} should be returned by JAX-RS. Found:\n"
                         + Util.listMeters(registry.find("http.server.requests").meters(), "uri"));
 
@@ -72,20 +75,13 @@ public class UriTagWithHttpApplicationRootTest {
         Assertions.assertEquals(1, registry.find("http.server.requests").tag("uri", "/vertx/item/{id}").timers().size(),
                 "Vert.x Web template path (/vertx/item/:id) should be detected/translated to /vertx/item/{id}. Found:\n"
                         + Util.listMeters(registry.find("http.server.requests").meters(), "uri"));
-        // TODO: Fixing in master #15407: /servlet/12345
-        Assertions.assertEquals(1, registry.find("http.server.requests").tag("uri", "/foo/servlet/12345").timers().size(),
-                "Servlet uri patterns are not handled yet. Found:\n"
+        Assertions.assertEquals(1, registry.find("http.server.requests").tag("uri", "/servlet").timers().size(),
+                "Servlet path (/servlet) should be used for servlet. Found:\n"
                         + Util.listMeters(registry.find("http.server.requests").meters(), "uri"));
 
-        // Client REST is oblivious to ApplicationPath (going to remote endpoint): /foo/bar/pong/{message}
-        Assertions.assertEquals(1, registry.find("http.client.requests").tag("uri", "/foo/bar/pong/one").timers().size(),
-                "Client path templates are not handled yet. Found:\n"
-                        + Util.listMeters(registry.find("http.client.requests").meters(), "uri"));
-        Assertions.assertEquals(1, registry.find("http.client.requests").tag("uri", "/foo/bar/pong/two").timers().size(),
-                "Client path templates are not handled yet. Found:\n"
-                        + Util.listMeters(registry.find("http.client.requests").meters(), "uri"));
-        Assertions.assertEquals(1, registry.find("http.client.requests").tag("uri", "/foo/bar/pong/three").timers().size(),
-                "Client path templates are not handled yet. Found:\n"
+        // Client REST is oblivious to http root / ApplicationPath (going to remote endpoint): /foo/bar/pong/{message}
+        Assertions.assertEquals(1, registry.find("http.client.requests").tag("uri", "/foo/bar/pong/{message}").timers().size(),
+                "/foo/bar/pong/{message} should be returned by Rest client. Found:\n"
                         + Util.listMeters(registry.find("http.client.requests").meters(), "uri"));
     }
 

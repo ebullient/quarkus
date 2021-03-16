@@ -57,8 +57,7 @@ public class VertxHttpServerMetricsTest {
         // Vertx route information collection, no web template
         Mockito.when(currentRoute.getPath()).thenReturn("/item");
         Mockito.when(routingContext.mountPoint()).thenReturn("/");
-
-        requestMetric.getRoutingContext(routingContext);
+        requestMetric.routingContext = routingContext;
 
         // Return the value passed in from the parent class
         Assertions.assertEquals("/item/abc", requestMetric.applyTemplateMatching("/item/abc"));
@@ -69,8 +68,7 @@ public class VertxHttpServerMetricsTest {
         // Emulate a Vert.x Route containing templated values
         Mockito.when(currentRoute.getPath()).thenReturn("/item/:id");
         Mockito.when(routingContext.mountPoint()).thenReturn("/");
-
-        requestMetric.getRoutingContext(routingContext);
+        requestMetric.routingContext = routingContext;
 
         // Should return the templated version of the path (based on the route definition)
         Assertions.assertEquals("/item/{id}", requestMetric.applyTemplateMatching("/"));

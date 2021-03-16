@@ -10,6 +10,7 @@ public class VertxMeterBinderRestEasyReactiveContainerFilter {
 
     @ServerRequestFilter
     public void filter(UriInfo uriInfo, RoutingContext routingContext) {
-
+        HttpRequestMetric metric = HttpRequestMetric.getRequestMetric(routingContext);
+        System.out.println("RESTEASY REACTIVE FILTER: " + metric + ", " + routingContext);
     }
 }

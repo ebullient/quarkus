@@ -8,7 +8,6 @@ import javax.servlet.DispatcherType;
 
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
-import io.quarkus.arc.deployment.GeneratedBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
@@ -70,7 +69,7 @@ public class HttpBinderProcessor {
         }
     }
 
-    @BuildStep(onlyIf = MicrometerProcessor.MicrometerEnabled.class )
+    @BuildStep(onlyIf = MicrometerProcessor.MicrometerEnabled.class)
     @Record(ExecutionTime.RUNTIME_INIT)
     SyntheticBeanBuildItem enableHttpBinders(MicrometerRecorder recorder,
             MicrometerConfig buildTimeConfig,
@@ -98,17 +97,17 @@ public class HttpBinderProcessor {
                 .done();
     }
 
-    @BuildStep(onlyIf = HttpServerBinderEnabled.class )
+    @BuildStep(onlyIf = HttpServerBinderEnabled.class)
     FilterBuildItem addVertxMeterFilter() {
         return new FilterBuildItem(new VertxMeterFilter(), Integer.MAX_VALUE);
     }
 
-    @BuildStep(onlyIf = HttpServerBinderEnabled.class )
+    @BuildStep(onlyIf = HttpServerBinderEnabled.class)
     void enableHttpServerSupport(Capabilities capabilities,
             BuildProducer<ResteasyJaxrsProviderBuildItem> resteasyJaxrsProviders,
             BuildProducer<CustomContainerRequestFilterBuildItem> customContainerRequestFilter,
-            BuildProducer<io.quarkus.undertow.deployment.FilterBuildItem> servletFilters, 
-                                 BuildProducer<AnnotationsTransformerBuildItem> annotationsTransformers,
+            BuildProducer<io.quarkus.undertow.deployment.FilterBuildItem> servletFilters,
+            BuildProducer<AnnotationsTransformerBuildItem> annotationsTransformers,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
 
         // Will have one or the other of these
@@ -136,12 +135,12 @@ public class HttpBinderProcessor {
         }
     }
 
-    @BuildStep(onlyIf = MicrometerProcessor.MicrometerEnabled.class )
+    @BuildStep(onlyIf = MicrometerProcessor.MicrometerEnabled.class)
     void findRestPaths(Capabilities capabilities,
-                       MicrometerConfig buildTimeConfig,
-                       Optional<ResteasyJaxrsConfigBuildItem> resteasyJaxrsConfig,
-                       BuildProducer<AnnotationsTransformerBuildItem> annotationsTransformers,
-                       CombinedIndexBuildItem indexBuildItem) {
+            MicrometerConfig buildTimeConfig,
+            Optional<ResteasyJaxrsConfigBuildItem> resteasyJaxrsConfig,
+            BuildProducer<AnnotationsTransformerBuildItem> annotationsTransformers,
+            CombinedIndexBuildItem indexBuildItem) {
         boolean clientEnabled = buildTimeConfig.checkBinderEnabledWithDefault(buildTimeConfig.binder.httpClient);
         boolean serverEnabled = buildTimeConfig.checkBinderEnabledWithDefault(buildTimeConfig.binder.httpServer);
 
@@ -150,7 +149,7 @@ public class HttpBinderProcessor {
         }
     }
 
-    @BuildStep(onlyIf = { HttpClientBinderEnabled.class })
+    @BuildStep(onlyIf = HttpClientBinderEnabled.class)
     void registerRestClientListener(BuildProducer<NativeImageResourceBuildItem> resource,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClass) {
         resource.produce(new NativeImageResourceBuildItem(

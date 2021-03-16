@@ -1,5 +1,7 @@
 package io.quarkus.micrometer.runtime.binder.vertx;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -16,7 +18,7 @@ public class HttpRequestMetric extends RequestMetricInfo {
     protected HttpServerRequest request;
     protected String initialPath;
     protected String templatePath;
-    protected String currentRoutePath;
+    protected RoutingContext routingContext;
 
     public HttpRequestMetric(String uri) {
         this.initialPath = uri;
@@ -32,6 +34,7 @@ public class HttpRequestMetric extends RequestMetricInfo {
     }
 
     public String applyTemplateMatching(String path) {
+        String currentRoutePath = getCurrentRoute();
         System.out.println("HERE, NOW WHAT: path=" + path + ", currentRoutePath=" + currentRoutePath);
         System.out.println(" ----:     routePath=" + currentRoutePath);
 
@@ -61,27 +64,23 @@ public class HttpRequestMetric extends RequestMetricInfo {
         return request;
     }
 
-    public String initialPath() {
-        return initialPath;
-    }
-
     public void setTemplatePath(String path) {
         this.templatePath = path;
     }
 
-    public void appendCurrentRoutePath(String path) {
-        if (path != null && !path.isEmpty()) {
-            this.currentRoutePath = path;
-        }
+    String getCurrentRoute() {
+        return routingContext == null ? null : routingContext.currentRoute().getPath();
     }
 
-    public void getRoutingContext(RoutingContext context) {
-        appendCurrentRoutePath(context.currentRoute().getPath());
+    public static HttpRequestMetric getRequestMetric(RoutingContext context) {
+        HttpRequestMetric metric = context.get(VertxHttpServerMetrics.METRICS_CONTEXT);
+        metric.routingContext = context;
+        return metric;
     }
 
     @Override
     public String toString() {
-        return "HttpRequestMetric [initialPath=" + initialPath + ", currentRoutePath=" + currentRoutePath
+        return "HttpRequestMetric [initialPath=" + initialPath + ", currentRoutePath=" + getCurrentRoute()
                 + ", templatePath=" + templatePath + ", request=" + request + "]";
     }
 }

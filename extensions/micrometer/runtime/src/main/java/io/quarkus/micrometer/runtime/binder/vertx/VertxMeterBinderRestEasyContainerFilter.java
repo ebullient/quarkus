@@ -15,8 +15,11 @@ public class VertxMeterBinderRestEasyContainerFilter implements ContainerRequest
     RoutingContext routingContext;
 
     @Override
-    public void filter(final ContainerRequestContext crc) {
-        ResourceMethodInvoker invoker = ((PostMatchContainerRequestContext) crc).getResourceMethod();
+    public void filter(final ContainerRequestContext requestContext) {
+        HttpRequestMetric metric = HttpRequestMetric.getRequestMetric(routingContext);
+        System.out.println("RESTEASY FILTER: " + metric + ", " + routingContext);
+
+        ResourceMethodInvoker invoker = ((PostMatchContainerRequestContext) requestContext).getResourceMethod();
         // Lookup the templated full path for the method
         //        String path = fullPathIndex.getFullPath(invoker.getMethod());
         //        routingContext.put(RequestMetricInfo.HTTP_REQUEST_PATH, path);

@@ -59,6 +59,9 @@ public class UriTagTest {
         when().get("/vertx/item/1/123").then().statusCode(200);
         when().get("/servlet/12345").then().statusCode(200);
 
+        System.out.println("Server paths\n" + Util.listMeters(registry.find("http.server.requests").meters(), "uri"));
+        System.out.println("Client paths\n" + Util.listMeters(registry.find("http.server.requests").meters(), "uri"));
+
         // /one should map to /two, which is ignored. Neither should exist w/ timers
         Assertions.assertEquals(0, registry.find("http.server.requests").tag("uri", "/one").timers().size(),
                 "/one is mapped to /two, which should be ignored. Found:\n"
@@ -82,7 +85,7 @@ public class UriTagTest {
                         + Util.listMeters(registry.find("http.server.requests").meters(), "uri"));
 
         // TODO: Fixing in master #15407: /servlet/12345
-        Assertions.assertEquals(1, registry.find("http.server.requests").tag("uri", "/servlet/12345").timers().size(),
+        Assertions.assertEquals(1, registry.find("http.server.requests").tag("uri", "/servlet").timers().size(),
                 "Servlet uri patterns are not handled yet. Found:\n"
                         + Util.listMeters(registry.find("http.server.requests").meters(), "uri"));
 

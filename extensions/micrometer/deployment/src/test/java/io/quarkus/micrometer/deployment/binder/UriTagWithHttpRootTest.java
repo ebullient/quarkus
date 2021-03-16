@@ -56,6 +56,9 @@ public class UriTagWithHttpRootTest {
         when().get("/foo/vertx/item/123").then().statusCode(200);
         when().get("/foo/servlet/12345").then().statusCode(200);
 
+        System.out.println("Server paths\n" + Util.listMeters(registry.find("http.server.requests").meters(), "uri"));
+        System.out.println("Client paths\n" + Util.listMeters(registry.find("http.server.requests").meters(), "uri"));
+
         // URIs for server: /ping/{message}, /pong/{message}, /vertx/item/{id}
         Assertions.assertEquals(1, registry.find("http.server.requests").tag("uri", "/ping/{message}").timers().size(),
                 "/ping/{message} should be returned by JAX-RS. Found:\n"
@@ -66,20 +69,12 @@ public class UriTagWithHttpRootTest {
         Assertions.assertEquals(1, registry.find("http.server.requests").tag("uri", "/vertx/item/{id}").timers().size(),
                 "Vert.x Web template path (/vertx/item/:id) should be detected/translated to /vertx/item/{id}. Found:\n"
                         + Util.listMeters(registry.find("http.server.requests").meters(), "uri"));
-        // TODO: Fixing in master #15407: /servlet/12345
-        Assertions.assertEquals(1, registry.find("http.server.requests").tag("uri", "/foo/servlet/12345").timers().size(),
+        Assertions.assertEquals(1, registry.find("http.server.requests").tag("uri", "/servlet").timers().size(),
                 "Servlet uri patterns are not handled yet. Found:\n"
                         + Util.listMeters(registry.find("http.server.requests").meters(), "uri"));
 
         // Client REST is oblivious to Http root path setting (going to remote endpoint): /foo/pong/{message}
-        // TODO: Fixing in master #15407
-        Assertions.assertEquals(1, registry.find("http.client.requests").tag("uri", "/foo/pong/one").timers().size(),
-                "Client path templates are not handled yet. Found:\n"
-                        + Util.listMeters(registry.find("http.client.requests").meters(), "uri"));
-        Assertions.assertEquals(1, registry.find("http.client.requests").tag("uri", "/foo/pong/two").timers().size(),
-                "Client path templates are not handled yet. Found:\n"
-                        + Util.listMeters(registry.find("http.client.requests").meters(), "uri"));
-        Assertions.assertEquals(1, registry.find("http.client.requests").tag("uri", "/foo/pong/three").timers().size(),
+        Assertions.assertEquals(1, registry.find("http.client.requests").tag("uri", "/foo/pong/{message}").timers().size(),
                 "Client path templates are not handled yet. Found:\n"
                         + Util.listMeters(registry.find("http.client.requests").meters(), "uri"));
     }

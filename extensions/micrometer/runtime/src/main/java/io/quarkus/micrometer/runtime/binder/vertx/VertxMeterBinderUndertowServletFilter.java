@@ -2,15 +2,13 @@ package io.quarkus.micrometer.runtime.binder.vertx;
 
 import java.io.IOException;
 
-import javax.enterprise.inject.spi.CDI;
+import javax.inject.Inject;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import io.quarkus.micrometer.runtime.binder.RequestMetricInfo;
-import io.quarkus.vertx.http.runtime.CurrentVertxRequest;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -19,6 +17,9 @@ import io.vertx.ext.web.RoutingContext;
  */
 public class VertxMeterBinderUndertowServletFilter extends HttpFilter {
 
+    @Inject
+    RoutingContext routingContext;
+
     @Override
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws IOException, ServletException {
@@ -26,12 +27,9 @@ public class VertxMeterBinderUndertowServletFilter extends HttpFilter {
         try {
             chain.doFilter(req, res);
         } finally {
-            RoutingContext routingContext = CDI.current().select(CurrentVertxRequest.class).get().getCurrent();
-
             // Fallback. Only set if not already set by something smarter
-            if (routingContext != null && routingContext.get(RequestMetricInfo.HTTP_REQUEST_PATH) == null) {
-                routingContext.put(RequestMetricInfo.HTTP_REQUEST_PATH, req.getServletPath());
-            }
+            HttpRequestMetric metric = HttpRequestMetric.getRequestMetric(routingContext);
+            metric.setTemplatePath(req.getServletPath());
         }
     }
 }

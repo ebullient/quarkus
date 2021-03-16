@@ -16,11 +16,7 @@ public class VertxMeterFilter implements Handler<RoutingContext> {
     @Override
     public void handle(RoutingContext routingContext) {
         final Context context = Vertx.currentContext();
-        HttpRequestMetric requestMetric = VertxHttpServerMetrics.retrieveRequestMetric(context);
-
-        if (requestMetric != null) {
-            requestMetric.getRoutingContext(routingContext);
-        }
+        VertxHttpServerMetrics.moveRequestMetric(context, routingContext);
         routingContext.next();
     }
 }

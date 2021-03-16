@@ -20,6 +20,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.spi.metrics.HttpServerMetrics;
+import io.vertx.ext.web.RoutingContext;
 
 /**
  * HttpServerMetrics<R, W, S>
@@ -60,7 +61,7 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
      * @param context Vertx context to store RequestMetric in
      * @param requestMetric
      * @see VertxMeterFilter
-     * @see #retrieveRequestMetric(Context)
+     * @see #moveRequestMetric(Context, RoutingContext)
      */
     public static void setRequestMetric(Context context, HttpRequestMetric requestMetric) {
         if (context != null) {
@@ -73,17 +74,17 @@ public class VertxHttpServerMetrics extends VertxTcpMetrics
      * Note: dropped in Vert.x 4
      *
      * @param context
+     * @param routingContext
      * @return the RequestMetricContext stored in the Vertx Context, or null
      * @see VertxMeterFilter
      * @see #setRequestMetric(Context, HttpRequestMetric)
      */
-    public static HttpRequestMetric retrieveRequestMetric(Context context) {
+    public static void moveRequestMetric(Context context, RoutingContext routingContext) {
         if (context != null) {
             HttpRequestMetric requestMetric = context.get(METRICS_CONTEXT);
             context.remove(METRICS_CONTEXT);
-            return requestMetric;
+            routingContext.put(METRICS_CONTEXT, requestMetric);
         }
-        return null;
     }
 
     /**
