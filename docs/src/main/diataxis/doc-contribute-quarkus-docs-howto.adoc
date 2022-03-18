@@ -1,0 +1,29 @@
+////
+This document is maintained in the main Quarkus repository
+and pull requests should be submitted there:
+https://github.com/quarkusio/quarkus/tree/main/docs/src/main/asciidoc
+////
+[id="howto-contribute-quarkus-docs"]
+= Contribute to Quarkus documentation
+include::attributes.adoc[]
+:asciidoc: https://docs.asciidoctor.org/asciidoc/latest/syntax-quick-reference/
+:quarkus-docs: https://github.com/quarkusio/quarkus/tree/main/docs
+:fn-diataxis: footnote:diataxis[Procida, D. Diátaxis documentation framework. https://diataxis.fr/]
+
+Quarkus welcomes community contributions, and improvements to documentation can be a great place to get started: your contributions make things better for everyone, and you don't have to be an expert to make a meaningful change.
+
+== Prerequisites
+
+If you want to contribute to Quarkus docs, we suggest you have the following materials nearby:
+
+- An editor or IDE that provides syntax highlighting and previews for asciidoc, either natively or using a plugin.
+- The xref:{docref}/doc-reference.adoc[Quarkus documentation reference] for required syntax and other conventions.
+
+== Sources
+
+Quarkus docs are built from source written using {asciidoc}[Asciidoc] syntax.
+
+- Documentation for Quarkus core and most extensions is located in the `docs` directory of the {quarkus-docs}[Quarkus GitHub repository].
+- Docs for Quarkiverse or other third-party extensions are pulled directly from those repositories.
+
+== 

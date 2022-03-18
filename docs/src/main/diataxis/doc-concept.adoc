@@ -1,0 +1,51 @@
+////
+This document is maintained in the main Quarkus repository
+and pull requests should be submitted there:
+https://github.com/quarkusio/quarkus/tree/main/docs/src/main/asciidoc
+////
+[id="concept-quarkus-documentation"]
+= Quarkus documentation concepts
+include::attributes.adoc[]
+:fn-diataxis: footnote:diataxis[Procida, D. Diátaxis documentation framework. https://diataxis.fr/]
+
+Quarkus is adopting the Diátaxis documentation framework{fn-diataxis} to create more useful, navigable documentation.
+
+== Content Types
+
+ We are aligning Quarkus docs with the Diátaxis documentation framework{fn-diataxis}, which defines a core content structure that addresses the different needs users have when consulting docs.
+
+
+The Diátaxis documentation framework{fn-diataxis} defines four distinct content types  (tutorial, how-to, explanation, and reference), which each address the different needs users' have. We will summarize the four content types below, but the
+
+=== Tutorial
+
+=== How-To Guide
+
+=== Concept
+
+=== Reference
+
+
+== Additional sections
+
+- xref:doc-create-concept-tutorial.adoc[Tutorial: Create a Concept document]
+- xref:doc-concept.adoc[Documentation concepts]
+- xref:doc-reference.adoc[Documentation reference]
+
+Notes from https://diataxis.fr/explanation/:
+
+- Make connections to other things, even to things outside the immediate topic, if that helps explain the concept.
+- Provide background and context in your explanation: explain why things are so - design decisions, historical reasons, technical constraints - draw implications, mention specific examples.
+- Explanation can consider alternatives, counter-examples or multiple different approaches to the same question.
+- Explanation should do things that the other parts of the documentation do not. It’s not the place of an explanation to instruct the user in how to do something. Nor should it provide technical description. These functions of documentation are already taken care of in other sections.
+
+Language tips:
+
+- Explain: "The reason for x is because historically, y…"
+- Offer judgements and even opinions where appropriate.., "W is better than z, because…"
+- Provide context that helps the reader: "An x in system y is analogous to a w in system z. However…"
+- Weigh up alternatives: "Some users prefer w (because z). This can be a good approach, but…"
+- Unfold the machinery’s internal secrets, to help understand why something does what it does: "An x interacts with a y as follows:…"
+
+
+

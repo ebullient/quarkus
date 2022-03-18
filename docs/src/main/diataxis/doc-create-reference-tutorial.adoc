@@ -1,0 +1,26 @@
+////
+This document is maintained in the main Quarkus repository
+and pull requests should be submitted there:
+https://github.com/quarkusio/quarkus/tree/main/docs/src/main/asciidoc
+////
+[id="tutorial-doc-create-reference"]
+= Creating a reference guide
+include::./attributes.adoc[]
+
+This tutorial will guide you through the process of creating a new reference document. We will work from the common template to re-create the Quarkus documentation reference.
+
+== Prerequisites
+
+- An editor or IDE that provides syntax highlighting and previews for asciidoc, either natively or using a plugin.
+- You should be familiar with the overview of what a xref:doc-concept.adoc#tutorial[Tutorial] is.
+- Have the xref:doc-reference.adoc[Quarkus documentation reference] handy as a reference for required syntax and other conventions.
+
+:sectnums:
+:sectnumlevels: 3
+== Decide on a title and file name
+
+Decide on a title for the tutorial. It should reflect what the user will accomplish by completing it. The title should use sentence case and the active tense. Try answering the question: what will they do? For this worked example, we will use  `Serve Http requests using the Acme extension`.
+
+Decide on a file name, this should be in lower-kebab-case, and should somewhat reflect the document's title. When choosing a file name, consider how the file will be grouped with related content. For this example, we will use `acme-serve-http-requests-tutorial.adoctxt`.
+
+NOTE: We are creating a tutorial, so the file name ends in `-tutorial.adoc`

@@ -1,0 +1,8 @@
+// Allow examples to render correctly in previews despite being
+// a nested directory
+:idprefix:
+:idseparator: -
+:icons: font
+:imagesdir: ./images
+:includes: ../includes
+:examples: .

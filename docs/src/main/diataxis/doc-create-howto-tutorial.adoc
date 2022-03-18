@@ -1,0 +1,73 @@
+////
+This document is maintained in the main Quarkus repository
+and pull requests should be submitted there:
+https://github.com/quarkusio/quarkus/tree/main/docs/src/main/asciidoc
+////
+[id="tutorial-doc-create-how-to-guide"]
+= Creating a How-To Guidde
+include::attributes.adoc[]
+
+This tutorial will guide you through the process of creating a new how-to guide. We will work from the common template to re-create the xref:doc-contribute-quarkus-documentation-howto.adoc[Contribute to Quarkus Documentation] guide.
+
+== Prerequisites
+
+- An editor or IDE that provides syntax highlighting and previews for asciidoc, either natively or using a plugin.
+- You should be familiar with the overview of what a xref:doc-concept.adoc#how-to-guide[How-To Guide] is.
+- Have the xref:doc-reference.adoc[Quarkus documentation reference] handy as a reference for required syntax and other conventions.
+
+:sectnums:
+:sectnumlevels: 3
+== Decide on a title and file name
+
+1. Decide on a title for the how-to guide.
++
+It should clearly define the question the how-to guide will answer. For the guide we are creating, the question is, "How to contribute to Quarkus documentation?" This leads to the following title in sentence case: `Contribute to Quarkus documentation`.
+
+2. Decide on a file name.
++
+The file name should be in lower-kebab-case, and should somewhat reflect the document's title. When choosing a file name, consider how the file will be grouped with related content.
++
+For this example, we will use `doc-contribute-quarkus-docs-howto.adoc`:
+
+- `doc-` sorts this guide with other resources related to documentation
+- `contribute-quarkus-docs` is a derivative of the document title
+- This is a how-to guide, so the file name ends in `-howto.adoc`
+
+== Copy the How-to guide template
+
+Copy `docs/src/main/asciidoc/_template-howto.adoc` from the Quarkus repository into a new file called `doc-contribute-quarkus-docs-howto.adoc`.
+
+== Update the document header
+
+[source,asciidoc]
+----
+[id="howto-contribute-quarkus-docs"] // <1>
+= Contribute to Quarkus documentation // <2>
+include::./attributes.adoc[] // <3><4>
+----
+
+<1> Create a unique id for the section in lower-kebab-case.
+<2> Add the title as a top-level heading.
+<3> This doesn't relate to an extension with special status, so we've removed the definition of extension status.
+<4> Include additional attributes that help define consistent formatting and provide source portability.
+
+The preview of your document should contain the chosen title as a styled header at the top of the page.
+
+== Add an abstract
+
+We want to let the readers of our tutorial know what they will achieve by following the steps in the tutorial. This abstract should be concise and should use appropriate verbs (create, build, deploy, ...) to set expectations. They should be able to determine if they want to engage with the content.
+
+[source,asciidoc]
+----
+In this tutorial, we will create an application that uses unique annotations from the experimental acme extension to define two endpoints: a simple Http endpoint and an endpoint that emits Server-Sent Events (SSE). We will also use Quarkus dev mode for iterative development and test.
+----
+
+[TIP]
+Some encourage using the word "learn" here, "You will learn...". How and when people learn things is unique to them, it is not something we can say (with certainty) that they will do. Avoid it.
+
+The preview of your document should contain the abstract as a paragraph immediately following the header.
+
+:sectnums!:
+== Summary
+
+In closing, describe (and admire, in a mild way) what your learner has accomplished (not: “you have learned…”).
