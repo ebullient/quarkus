@@ -338,6 +338,10 @@ public class QuarkusMainTestExtension extends AbstractJvmQuarkusTestExtension
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
+        // Clear previous testing type (new test instance)
+        ExtensionContext.Store store = getStoreFromContext(context);
+        store.remove(IO_QUARKUS_TESTING_TYPE);
+
         currentTestClassStack.push(context.getRequiredTestClass());
     }
 }

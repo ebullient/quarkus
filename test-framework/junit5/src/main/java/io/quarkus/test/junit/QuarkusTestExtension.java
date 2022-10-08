@@ -719,6 +719,10 @@ public class QuarkusTestExtension extends AbstractJvmQuarkusTestExtension
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
+        // Clear previous testing type (new test instance)
+        ExtensionContext.Store store = getStoreFromContext(context);
+        store.remove(IO_QUARKUS_TESTING_TYPE);
+
         currentTestClassStack.push(context.getRequiredTestClass());
         //set the right launch mode in the outer CL, used by the HTTP host config source
         ProfileManager.setLaunchMode(LaunchMode.TEST);
