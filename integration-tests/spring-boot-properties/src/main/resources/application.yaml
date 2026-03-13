@@ -1,0 +1,44 @@
+# Existing test properties (migrated from application.properties)
+cl:
+  value: class-value
+  another-class:
+    value: true
+
+bean:
+  value: 1
+  inner-class:
+    value: inner-class-value
+
+interface:
+  value: interface-value
+
+# Map<String, String> binding with scalar fields
+server-pool:
+  default-server: us-east-1
+  servers:
+    primary: us-east-1
+    secondary: eu-west-1
+    failover: ap-south-1
+  labels:
+    env: production
+
+# Map<String, ComplexObject> binding — complex nested map values
+app-routes:
+  version: "2.0"
+  disabled:
+    - legacy-api
+    - debug-endpoint
+  routes:
+    user-service:
+      path: /api/users
+      timeout: 30
+      methods:
+        - GET
+        - POST
+    order-service:
+      path: /api/orders
+      timeout: 60
+      methods:
+        - GET
+        - POST
+        - PUT
